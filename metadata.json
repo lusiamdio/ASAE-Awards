@@ -1,0 +1,6 @@
+{
+  "name": "Angola South Africa Awards Excellence Portal",
+  "description": "Nomination, voting system, and super admin control center for the Angola South Africa Awards Excellence galla event.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

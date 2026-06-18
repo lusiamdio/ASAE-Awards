@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cinzel", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+
+  --color-gold: #f59e0b;
+  --color-gold-light: #fbbf24;
+  --color-gold-pale: #fde68a;
+  --color-dark: #050505;
+  --color-dark-soft: #080808;
+  --color-dark-card: #171717;
+  --color-ivory: #ffffff;
+  --color-angola-red: #BC002D;
+  --color-sa-green: #007A33;
+  --color-sa-blue: #002395;
+  --color-dim: #9ca3af;
+}
+
+@layer base {
+  body {
+    @apply bg-dark text-ivory font-sans antialiased overflow-x-hidden;
+  }
+}
+
