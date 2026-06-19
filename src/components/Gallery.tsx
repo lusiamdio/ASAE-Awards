@@ -21,12 +21,12 @@ export function Gallery() {
             viewport={{ once: true }}
             className="max-w-2xl"
           >
-            <div className="font-display text-[10px] tracking-[5px] uppercase text-gold flex items-center gap-4 mb-5">
+            <div className="font-display text-[11px] tracking-[5px] uppercase text-gold/80 flex items-center gap-4 mb-5">
               <span className="w-8 h-px bg-gold"></span>
-              Hall of Fame
+              LEGACY & EXCELLENCE
             </div>
-            <h2 className="font-display text-3xl md:text-5xl font-bold leading-[1.15]">
-              Past <span className="text-gold">Winners Archive</span>
+            <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.15] text-ivory">
+              Hall of <span className="text-gold">Fame</span>
             </h2>
           </motion.div>
           <motion.a 

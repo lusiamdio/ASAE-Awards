@@ -16,11 +16,64 @@
   --color-sa-green: #007A33;
   --color-sa-blue: #002395;
   --color-dim: #9ca3af;
+
+  --animate-marquee: marquee 45s linear infinite;
+
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
 }
 
 @layer base {
   body {
     @apply bg-dark text-ivory font-sans antialiased overflow-x-hidden;
+  }
+
+  /* Make all scrolling bars transparent */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(245, 158, 11, 0.12) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(245, 158, 11, 0.12) !important;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(245, 158, 11, 0.35) !important;
+  }
+
+  /* Specific transparent scrollbar for Doc Centre */
+  .doc-centre-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .doc-centre-scrollbar::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  .doc-centre-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .doc-centre-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(245, 158, 11, 0.3) !important;
   }
 }
 

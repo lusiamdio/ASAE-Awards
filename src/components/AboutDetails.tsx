@@ -81,7 +81,7 @@ export function AboutDetails() {
                         <div className="flex items-start gap-4">
                           <Star className="text-gold shrink-0 mt-1" size={20} />
                           <p className="text-ivory/80 italic font-serif text-lg">
-                            "Celebrating the pioneers, innovators, and leaders shaping the economic and cultural bridge between Luanda and Johannesburg."
+                            "Celebrating the pioneers, innovators, and leaders shaping the economic and cultural bridge between Luanda and Cape Town."
                           </p>
                         </div>
                       </div>

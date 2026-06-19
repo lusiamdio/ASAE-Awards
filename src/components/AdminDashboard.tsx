@@ -126,6 +126,16 @@ interface BlogPost {
   views: number;
 }
 
+interface Advertisement {
+  id: string;
+  title: string;
+  image: string;
+  placement: string;
+  dateCreated: string;
+  clicks: number;
+  impressions: number;
+}
+
 interface Task {
   id: string;
   text: string;
@@ -467,34 +477,88 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [newMemberTier, setNewMemberTier] = useState<'Silver' | 'Gold' | 'Platinum'>('Gold');
   const [newMemberFee, setNewMemberFee] = useState<number>(8500);
 
-  const [posts, setPosts] = useState<BlogPost[]>([
-    {
-      id: 'PST-01',
-      title: 'Driving Sustainable Investment in SADC States',
-      category: 'Finance & Growth',
-      author: 'Admin Editorial Desk',
-      excerpt: 'Sovereign wealth growth requires rigorous infrastructure models and stable regional policies. We look at the top success stories of 2025/2026.',
-      content: 'This technical editorial examines the rapid growth of investment in the SADC structures. In the last year, South Africa and Angola have solidified collaborative energy pipelines and digital finance frameworks... We highlight standard regulatory parameters enabling sustainable development.',
-      image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&q=80&w=800',
-      type: 'Blog',
-      status: 'Published',
-      dateCreated: '2026-06-12',
-      views: 314
-    },
-    {
-      id: 'MAG-01',
-      title: 'ASAE Excellence Digital - Edition #4',
-      category: 'Digital Magazine',
-      author: 'ASAE Executive Board',
-      excerpt: 'The official digital compilation featuring peer-voted business champions, macroeconomic outlooks, and luxury sponsor showcases.',
-      content: 'Welcome to Edition #4 of ASAE Excellence Digital. In this edition, we run deep profiles on our leading nominees, highlight the state of regional fintech networks, and provide our attendees with complete scheduling details for our major keynote summits.',
-      image: 'https://images.unsplash.com/photo-1544924799-79a10dd06a2e?auto=format&fit=crop&q=80&w=800',
-      type: 'Magazine',
-      status: 'Published',
-      dateCreated: '2026-06-15',
-      views: 789
+  const [posts, setPosts] = useState<BlogPost[]>(() => {
+    try {
+      const saved = localStorage.getItem("blogs");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
     }
-  ]);
+    return [
+      {
+        id: 'PST-01',
+        title: 'Driving Sustainable Investment in SADC States',
+        category: 'Finance & Growth',
+        author: 'Admin Editorial Desk',
+        excerpt: 'Sovereign wealth growth requires rigorous infrastructure models and stable regional policies. We look at the top success stories of 2025/2026.',
+        content: 'This technical editorial examines the rapid growth of investment in the SADC structures. In the last year, South Africa and Angola have solidified collaborative energy pipelines and digital finance frameworks... We highlight standard regulatory parameters enabling sustainable development.',
+        image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&q=80&w=800',
+        type: 'Blog',
+        status: 'Published',
+        dateCreated: '2026-06-12',
+        views: 314
+      },
+      {
+        id: 'MAG-01',
+        title: 'ASAE Excellence Digital - Edition #4',
+        category: 'Digital Magazine',
+        author: 'ASAE Executive Board',
+        excerpt: 'The official digital compilation featuring peer-voted business champions, macroeconomic outlooks, and luxury sponsor showcases.',
+        content: 'Welcome to Edition #4 of ASAE Excellence Digital. In this edition, we run deep profiles on our leading nominees, highlight the state of regional fintech networks, and provide our attendees with complete scheduling details for our major keynote summits.',
+        image: 'https://images.unsplash.com/photo-1544924799-79a10dd06a2e?auto=format&fit=crop&q=80&w=800',
+        type: 'Magazine',
+        status: 'Published',
+        dateCreated: '2026-06-15',
+        views: 789
+      }
+    ];
+  });
+
+  const [ads, setAds] = useState<Advertisement[]>(() => {
+    try {
+      const saved = localStorage.getItem("ads");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return [
+      {
+        id: 'AD-1',
+        title: 'SADC Trade Gateway Hub Campaign',
+        image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
+        placement: 'Homepage Hero',
+        dateCreated: '2026-06-10',
+        clicks: 10980,
+        impressions: 354209
+      },
+      {
+        id: 'AD-2',
+        title: 'Unitel Fiber SADC Ocean Link Campaign',
+        image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80',
+        placement: 'Sidebar',
+        dateCreated: '2026-06-12',
+        clicks: 30373,
+        impressions: 584103
+      }
+    ];
+  });
+
+  const [blogsSubTab, setBlogsSubTab] = useState<'blogs' | 'ads'>('blogs');
+
+  // Ad Form States
+  const [newAdTitle, setNewAdTitle] = useState('');
+  const [newAdImage, setNewAdImage] = useState('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80');
+  const [newAdPlacement, setNewAdPlacement] = useState('Homepage Hero');
+  const [editingAdId, setEditingAdId] = useState<string | null>(null);
+  const [previewAd, setPreviewAd] = useState<Advertisement | null>(null);
+
+  React.useEffect(() => {
+    localStorage.setItem("blogs", JSON.stringify(posts));
+  }, [posts]);
+
+  React.useEffect(() => {
+    localStorage.setItem("ads", JSON.stringify(ads));
+  }, [ads]);
 
   const [tasks, setTasks] = useState<Task[]>([
     { id: 'TSK-1', text: 'Approve 4 Premium Corporate Tables', done: false, priority: 'High' },
@@ -793,7 +857,7 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   // Vote immutable trail
   const [voteAudits, setVoteAudits] = useState<VoteAudit[]>([
     { voteId: 'VOT-202410', voterId: 'USR-89241', deviceId: 'DEV-F8214', timestamp: '2026-06-18 08:01:24', location: 'Luanda, AO', paymentRef: 'FREE-VOTE', nomineeName: 'Dr. Antonio Domingos', categoryName: 'Business Leader of the Year', riskScore: 4 },
-    { voteId: 'VOT-202411', voterId: 'USR-90124', deviceId: 'DEV-K9125', timestamp: '2026-06-18 08:02:11', location: 'Johannesburg, ZA', paymentRef: 'PAY-OZ-9124', nomineeName: 'Sarah Mokoena', categoryName: 'Business Leader of the Year', riskScore: 2 },
+    { voteId: 'VOT-202411', voterId: 'USR-90124', deviceId: 'DEV-K9125', timestamp: '2026-06-18 08:02:11', location: 'Cape Town, ZA', paymentRef: 'PAY-OZ-9124', nomineeName: 'Sarah Mokoena', categoryName: 'Business Leader of the Year', riskScore: 2 },
     { voteId: 'VOT-202412', voterId: 'USR-51290', deviceId: 'DEV-M3182', timestamp: '2026-06-18 08:02:59', location: 'Soweto, ZA', paymentRef: 'FREE-VOTE', nomineeName: 'James Valerio', categoryName: 'Business Leader of the Year', riskScore: 12 },
     { voteId: 'VOT-202413', voterId: 'USR-84192', deviceId: 'DEV-Z8103', timestamp: '2026-06-18 08:05:33', location: 'Benguela, AO', paymentRef: 'PAY-MC-810', nomineeName: 'Dr. Lando António', categoryName: 'Young Entrepreneur of the Year', riskScore: 1 },
     { voteId: 'VOT-202414', voterId: 'USR-29471', deviceId: 'DEV-U9914', timestamp: '2026-06-18 08:06:12', location: 'Cape Town, ZA', paymentRef: 'FREE-VOTE', nomineeName: 'Sarah Mokoena', categoryName: 'Business Leader of the Year', riskScore: 3 },
@@ -814,7 +878,7 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     resultsEncrypted: false,
     scheduledRevealTime: '2026-06-25 19:30:00',
     certificatesDispatched: 0,
-    trophiesTracked: 'In Transit to Johannesburg Int. Convention Centre'
+    trophiesTracked: 'In Transit to Cape Town Int. Convention Centre'
   });
 
   // Helper utility to show dynamic toast
@@ -1119,6 +1183,60 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const handleDeletePost = (id: string) => {
     setPosts(prev => prev.filter(p => p.id !== id));
     triggerToast('Post Destroyed', 'Permanently expunged the newsletter article file and public feed endpoints.');
+  };
+
+  // Ad Server CRUD
+  const handleSaveAd = () => {
+    if (!newAdTitle || !newAdImage) {
+      triggerToast('Form Validation Failed', 'Please include both a title and an image URL for the advertisement.', 'alert');
+      return;
+    }
+
+    if (editingAdId) {
+      setAds(prev => prev.map(a => {
+        if (a.id === editingAdId) {
+          return {
+            ...a,
+            title: newAdTitle,
+            image: newAdImage,
+            placement: newAdPlacement
+          };
+        }
+        return a;
+      }));
+      setEditingAdId(null);
+      triggerToast('Ad Updated', `Successfully updated advertisement: '${newAdTitle}'`);
+    } else {
+      const newAd: Advertisement = {
+        id: `AD-${ads.length + 10}`,
+        title: newAdTitle,
+        image: newAdImage,
+        placement: newAdPlacement,
+        dateCreated: new Date().toISOString().substring(0, 10),
+        clicks: 0,
+        impressions: 0
+      };
+      setAds([newAd, ...ads]);
+      triggerToast('Ad Created! 📢', `New ad banner '${newAdTitle}' is live in placement '${newAdPlacement}'.`);
+    }
+
+    // Reset Form
+    setNewAdTitle('');
+    setNewAdImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80');
+    setNewAdPlacement('Homepage Hero');
+  };
+
+  const handleEditAdSelect = (ad: Advertisement) => {
+    setEditingAdId(ad.id);
+    setNewAdTitle(ad.title);
+    setNewAdImage(ad.image);
+    setNewAdPlacement(ad.placement);
+    triggerToast('Ad Editing Mode', `Editing advertisement '${ad.title}'. Make your edits in the form.`);
+  };
+
+  const handleDeleteAd = (id: string) => {
+    setAds(prev => prev.filter(a => a.id !== id));
+    triggerToast('Ad Removed', 'Successfully removed advertisement from rotation campaigns.');
   };
 
   // Drag over drop simulation helper
@@ -1995,223 +2113,452 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 className="space-y-8"
               >
                 {/* Visual Header Grid for blogs */}
-                <div className="flex justify-between items-end">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/5 pb-4">
                   <div>
                     <h3 className="font-serif text-xl font-bold text-ivory">ASAE Global Media Hub</h3>
-                    <p className="text-sm text-dim mt-0.5">Author business blogs, release premium digital magazine editions, and govern content.</p>
+                    <p className="text-sm text-dim mt-0.5">Author business blogs, release premium digital magazine editions, configure advertising servers & placements.</p>
                   </div>
-                  {editingPostId && (
+                  <div className="flex gap-2 shrink-0">
                     <button 
-                      onClick={() => {
-                        setEditingPostId(null);
-                        setNewPostTitle('');
-                        setNewPostExcerpt('');
-                        setNewPostContent('');
-                        setEditingPostId(null);
-                      }}
-                      className="px-4 py-2 border border-white/25 rounded-md text-xs font-bold uppercase hover:bg-white/5 transition-colors"
+                      onClick={() => setBlogsSubTab('blogs')}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
+                        blogsSubTab === 'blogs' ? 'bg-gold text-dark' : 'bg-white/5 text-dim hover:text-ivory'
+                      }`}
                     >
-                      Clear Editing State
+                      📰 Editorial & Blogs ({posts.length})
                     </button>
-                  )}
+                    <button 
+                      onClick={() => setBlogsSubTab('ads')}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
+                        blogsSubTab === 'ads' ? 'bg-gold text-dark' : 'bg-white/5 text-dim hover:text-ivory'
+                      }`}
+                    >
+                      📢 Ad Server ({ads.length})
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8">
-                  {/* LEFT: Authoring Workspace */}
-                  <div className="bg-dark-card border border-white/5 rounded-2xl p-6 space-y-5 shadow-2xl">
-                    <div className="border-b border-white/5 pb-3">
-                      <h4 className="font-serif text-base font-bold text-gold-pale">
-                        {editingPostId ? `Modify Resource Case: [${editingPostId}]` : 'Create ASAE Publication'}
-                      </h4>
-                      <p className="text-[11px] text-dim font-mono mb-1">Enter your literary contents directly into SADC servers.</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Article/Issue Scope</label>
-                        <select 
-                          value={newPostType}
-                          onChange={(e) => setNewPostType(e.target.value as 'Blog' | 'Magazine')}
-                          className="w-full bg-dark border border-white/10 rounded-lg p-2.5 text-xs text-ivory outline-none focus:border-gold appearance-none"
-                        >
-                          <option value="Blog">Peer Blog Post</option>
-                          <option value="Magazine">Digital Magazine Issue</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Broad Category</label>
-                        <select 
-                          value={newPostCategory}
-                          onChange={(e) => setNewPostCategory(e.target.value)}
-                          className="w-full bg-dark border border-white/10 rounded-lg p-2.5 text-xs text-ivory outline-none focus:border-gold appearance-none font-mono text-[11px]"
-                        >
-                          <option value="Finance & Growth">Finance & Growth</option>
-                          <option value="Technology Innovator">Agro-Tech / AI</option>
-                          <option value="Digital Magazine">Digital Magazine Issue</option>
-                          <option value="ASAE Board Statement">ASAE Board Statement</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Editorial Title Line</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g., Regional trade optimization within southern boundaries" 
-                        value={newPostTitle}
-                        onChange={(e) => setNewPostTitle(e.target.value)}
-                        className="w-full bg-dark border border-white/10 rounded-lg p-2.5 text-xs text-ivory outline-none focus:border-gold transition-all" 
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Card Excerpt Summary (1-2 sentences)</label>
-                      <input 
-                        type="text" 
-                        placeholder="Providing macro insight into inter-governmental investment structures..." 
-                        value={newPostExcerpt}
-                        onChange={(e) => setNewPostExcerpt(e.target.value)}
-                        className="w-full bg-dark border border-white/10 rounded-lg p-3 text-xs text-ivory outline-none focus:border-gold transition-all" 
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Article content (HTML & Markdown compatible)</label>
-                      <textarea 
-                        rows={6} 
-                        placeholder="Within our 2026 strategic objectives, ASAE remains committed to tracking technology infrastructure..." 
-                        value={newPostContent}
-                        onChange={(e) => setNewPostContent(e.target.value)}
-                        className="w-full bg-dark border border-white/10 rounded-lg p-3 text-xs text-ivory outline-none focus:border-gold resize-none transition-all font-sans leading-relaxed"
-                      ></textarea>
-                    </div>
-
-                    {/* Drag-and-drop Image Area */}
-                    <div>
-                      <label className="block text-[10px] uppercase tracking-widest text-dim mb-1 font-mono">Cover Graphic Banner URL</label>
-                      <input 
-                        type="text" 
-                        value={newPostImage} 
-                        onChange={(e) => setNewPostImage(e.target.value)}
-                        className="w-full bg-dark border border-white/10 rounded-lg p-2 text-[11px] text-ivory outline-none focus:border-gold mb-3 font-mono"
-                      />
-
-                      <div 
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDropMock}
-                        className={`border-2 border-dashed rounded-xl p-6 text-center transition-all ${
-                          dragOver ? 'border-gold bg-gold/10 scale-95' : 'border-white/10 bg-white/5 hover:border-white/20'
-                        }`}
-                      >
-                        <p className="text-[11px] uppercase tracking-wider font-bold text-gold-pale mb-1">
-                          Drag and Drop Media File here
-                        </p>
-                        <p className="text-[10px] text-dim">Or click to select executive cover graphics from local storage (Simulated)</p>
-                        {newPostImage && (
-                          <div className="mt-3 flex items-center justify-center gap-2 bg-dark/80 p-1.5 rounded-lg border border-white/5 max-w-[280px] mx-auto truncate text-[10px] font-mono text-dim">
-                            <span className="text-sa-green font-bold">✓ Visual thumbnail:</span> {newPostImage}
-                          </div>
+                {/* Sub-Tab 1: EDITORIAL & BLOGS */}
+                {blogsSubTab === 'blogs' && (
+                  <div className="grid md:grid-cols-2 gap-8">
+                    {/* LEFT: Authoring Workspace */}
+                    <div className="bg-dark-card border border-white/5 rounded-2xl p-6 space-y-5 shadow-2xl">
+                      <div className="border-b border-white/5 pb-3 flex justify-between items-center">
+                        <div>
+                          <h4 className="font-serif text-base font-bold text-gold-pale">
+                            {editingPostId ? `Modify Resource Case: [${editingPostId}]` : 'Create ASAE Publication'}
+                          </h4>
+                          <p className="text-[11px] text-dim font-mono mb-1">Enter your literary contents directly into SADC servers.</p>
+                        </div>
+                        {editingPostId && (
+                          <button 
+                            onClick={() => {
+                              setEditingPostId(null);
+                              setNewPostTitle('');
+                              setNewPostExcerpt('');
+                              setNewPostContent('');
+                            }}
+                            className="text-[10px] text-angola-red hover:underline font-mono"
+                          >
+                            Cancel Edit
+                          </button>
                         )}
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Article/Issue Scope</label>
+                          <select 
+                            value={newPostType}
+                            onChange={(e) => setNewPostType(e.target.value as 'Blog' | 'Magazine')}
+                            className="w-full bg-dark border border-white/10 rounded-lg p-2.5 text-xs text-ivory outline-none focus:border-gold appearance-none"
+                          >
+                            <option value="Blog">Peer Blog Post</option>
+                            <option value="Magazine">Digital Magazine Issue</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Broad Category</label>
+                          <select 
+                            value={newPostCategory}
+                            onChange={(e) => setNewPostCategory(e.target.value)}
+                            className="w-full bg-dark border border-white/10 rounded-lg p-2.5 text-xs text-ivory outline-none focus:border-gold appearance-none font-mono text-[11px]"
+                          >
+                            <option value="Finance & Growth font-mono">Finance & Growth</option>
+                            <option value="Technology Innovator font-mono font-bold">Agro-Tech / AI</option>
+                            <option value="Digital Magazine font-mono">Digital Magazine Issue</option>
+                            <option value="ASAE Board Statement font-mono">ASAE Board Statement</option>
+                          </select>
+                        </div>
+                      </div>
+
                       <div>
-                        <label className="block text-[9px] uppercase tracking-widest text-dim mb-1">Publishing Mode</label>
-                        <select 
-                          value={newPostStatus}
-                          onChange={(e) => setNewPostStatus(e.target.value as 'Published' | 'Draft')}
-                          className="w-full bg-dark border border-white/10 rounded-lg p-2 text-xs text-ivory focus:border-gold"
-                        >
-                          <option value="Published">Send Public Live</option>
-                          <option value="Draft">Save Draft Workspace</option>
-                        </select>
+                        <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Editorial Title Line</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g., Regional trade optimization within southern boundaries" 
+                          value={newPostTitle}
+                          onChange={(e) => setNewPostTitle(e.target.value)}
+                          className="w-full bg-dark border border-white/10 rounded-lg p-2.5 text-xs text-ivory outline-none focus:border-gold transition-all" 
+                        />
                       </div>
-                      <div className="flex items-end">
-                        <button 
-                          onClick={handleSaveBlogPost}
-                          className="w-full py-2 bg-gold hover:bg-gold-light text-dark font-sans text-xs uppercase tracking-widest font-bold rounded-lg transition-all shadow-lg"
+
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Card Excerpt Summary (1-2 sentences)</label>
+                        <input 
+                          type="text" 
+                          placeholder="Providing macro insight into inter-governmental investment structures..." 
+                          value={newPostExcerpt}
+                          onChange={(e) => setNewPostExcerpt(e.target.value)}
+                          className="w-full bg-dark border border-white/10 rounded-lg p-3 text-xs text-ivory outline-none focus:border-gold transition-all" 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Article content (HTML & Markdown compatible)</label>
+                        <textarea 
+                          rows={6} 
+                          placeholder="Within our 2026 strategic objectives, ASAE remains committed to tracking technology infrastructure..." 
+                          value={newPostContent}
+                          onChange={(e) => setNewPostContent(e.target.value)}
+                          className="w-full bg-dark border border-white/10 rounded-lg p-3 text-xs text-ivory outline-none focus:border-gold resize-none transition-all font-sans leading-relaxed"
+                        ></textarea>
+                      </div>
+
+                      {/* Drag-and-drop Image Area */}
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-widest text-dim mb-1 font-mono">Cover Graphic Banner URL</label>
+                        <input 
+                          type="text" 
+                          value={newPostImage} 
+                          onChange={(e) => setNewPostImage(e.target.value)}
+                          className="w-full bg-dark border border-white/10 rounded-lg p-2 text-[11px] text-ivory outline-none focus:border-gold mb-3 font-mono"
+                        />
+
+                        <div 
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDropMock}
+                          className={`border-2 border-dashed rounded-xl p-6 text-center transition-all ${
+                            dragOver ? 'border-gold bg-gold/10 scale-95' : 'border-white/10 bg-white/5 hover:border-white/20'
+                          }`}
                         >
-                          {editingPostId ? 'Confirm Updates ✓' : 'Commit Publication 📰'}
-                        </button>
+                          <p className="text-[11px] uppercase tracking-wider font-bold text-gold-pale mb-1">
+                            Drag and Drop Media File here
+                          </p>
+                          <p className="text-[10px] text-dim">Or click to select executive cover graphics from local storage (Simulated)</p>
+                          {newPostImage && (
+                            <div className="mt-3 flex items-center justify-center gap-2 bg-dark/80 p-1.5 rounded-lg border border-white/5 max-w-[280px] mx-auto truncate text-[10px] font-mono text-dim">
+                              <span className="text-sa-green font-bold">✓ Visual thumbnail:</span> {newPostImage}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                        <div>
+                          <label className="block text-[9px] uppercase tracking-widest text-dim mb-1">Publishing Mode</label>
+                          <select 
+                            value={newPostStatus}
+                            onChange={(e) => setNewPostStatus(e.target.value as 'Published' | 'Draft')}
+                            className="w-full bg-dark border border-white/10 rounded-lg p-2 text-xs text-ivory focus:border-gold"
+                          >
+                            <option value="Published">Send Public Live</option>
+                            <option value="Draft">Save Draft Workspace</option>
+                          </select>
+                        </div>
+                        <div className="flex items-end">
+                          <button 
+                            onClick={handleSaveBlogPost}
+                            className="w-full py-2 bg-gold hover:bg-gold-light text-dark font-sans text-xs uppercase tracking-widest font-bold rounded-lg transition-all shadow-lg text-center"
+                          >
+                            {editingPostId ? 'Confirm Updates ✓' : 'Commit Publication 📰'}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* RIGHT: Active Published Feed & Live Previews */}
-                  <div className="space-y-6">
-                    <div className="bg-dark-card border border-white/5 rounded-2xl p-6 shadow-2xl">
-                      <div className="border-b border-white/5 pb-3 mb-4 flex justify-between items-center">
-                        <h4 className="font-serif text-sm font-bold text-ivory uppercase tracking-wider">Live SADC Media Directories</h4>
-                        <span className="text-[9px] bg-gold/10 text-gold px-2 py-0.5 rounded font-mono font-bold">{posts.length} Active Pages</span>
-                      </div>
+                    {/* RIGHT: Active Published Feed & Live Previews */}
+                    <div className="space-y-6">
+                      <div className="bg-dark-card border border-white/5 rounded-2xl p-6 shadow-2xl">
+                        <div className="border-b border-white/5 pb-3 mb-4 flex justify-between items-center">
+                          <h4 className="font-serif text-sm font-bold text-ivory uppercase tracking-wider">Live SADC Media Directories</h4>
+                          <span className="text-[9px] bg-gold/10 text-gold px-2 py-0.5 rounded font-mono font-bold">{posts.length} Active Pages</span>
+                        </div>
 
-                      <div className="space-y-4 max-h-[580px] overflow-y-auto pr-2">
-                        {posts.map((post) => (
-                          <div key={post.id} className="p-4 bg-dark rounded-xl border border-white/5 hover:border-gold/20 transition-all flex gap-4">
-                            <div className="w-24 h-24 rounded-lg bg-cover bg-center shrink-0 border border-white/10" style={{ backgroundImage: `url(${post.image})` }}></div>
-                            <div className="grow space-y-1">
-                              <div className="flex justify-between items-start">
-                                <span className="text-[9px] font-mono text-gold font-bold px-1.5 py-0.5 bg-gold/5 rounded border border-gold/15 uppercase">
-                                  {post.type} - {post.category}
-                                </span>
-                                <div className="flex items-center gap-1">
-                                  <button 
-                                    onClick={() => handleEditBlogSelect(post)}
-                                    title="Edit Draft"
-                                    className="p-1 text-dim hover:text-gold hover:bg-white/5 rounded transition-colors"
-                                  >
-                                    <Edit2 size={12} />
-                                  </button>
-                                  <button 
-                                    onClick={() => handleDeletePost(post.id)}
-                                    title="Eradicate Content"
-                                    className="p-1 text-dim hover:text-angola-red hover:bg-white/5 rounded transition-colors"
-                                  >
-                                    <Trash2 size={12} />
-                                  </button>
-                                  <button 
-                                    onClick={() => {
-                                      setPreviewPost(post);
-                                      triggerToast('Article Preview Activated', `Fidelity simulation preview open for '${post.title}'`);
-                                    }}
-                                    title="Live Preview View"
-                                    className="p-1 text-dim hover:text-sa-green hover:bg-white/5 rounded transition-colors"
-                                  >
-                                    <Eye size={12} />
-                                  </button>
+                        <div className="space-y-4 max-h-[580px] overflow-y-auto pr-2">
+                          {posts.map((post) => (
+                            <div key={post.id} className="p-4 bg-dark rounded-xl border border-white/5 hover:border-gold/20 transition-all flex gap-4">
+                              <div className="w-24 h-24 rounded-lg bg-cover bg-center shrink-0 border border-white/10" style={{ backgroundImage: `url(${post.image})` }}></div>
+                              <div className="grow space-y-1">
+                                <div className="flex justify-between items-start">
+                                  <span className="text-[9px] font-mono text-gold font-bold px-1.5 py-0.5 bg-gold/5 rounded border border-gold/15 uppercase">
+                                    {post.type} - {post.category}
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <button 
+                                      onClick={() => handleEditBlogSelect(post)}
+                                      title="Edit Draft"
+                                      className="p-1 text-dim hover:text-gold hover:bg-white/5 rounded transition-colors"
+                                    >
+                                      <Edit2 size={12} />
+                                    </button>
+                                    <button 
+                                      onClick={() => handleDeletePost(post.id)}
+                                      title="Eradicate Content"
+                                      className="p-1 text-dim hover:text-angola-red hover:bg-white/5 rounded transition-colors"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                    <button 
+                                      onClick={() => {
+                                        setPreviewPost(post);
+                                        triggerToast('Article Preview Activated', `Fidelity simulation preview open for '${post.title}'`);
+                                      }}
+                                      title="Live Preview View"
+                                      className="p-1 text-dim hover:text-sa-green hover:bg-white/5 rounded transition-colors"
+                                    >
+                                      <Eye size={12} />
+                                    </button>
+                                  </div>
+                                </div>
+                                <h5 className="font-serif text-sm font-bold text-ivory leading-snug">{post.title}</h5>
+                                <p className="text-[11px] text-dim line-clamp-2 leading-relaxed">{post.excerpt}</p>
+                                <div className="flex justify-between text-[9px] text-dim font-mono pt-1">
+                                  <span>Views: <strong>{post.views} matches</strong></span>
+                                  <span>By {post.author}</span>
                                 </div>
                               </div>
-                              <h5 className="font-serif text-sm font-bold text-ivory leading-snug">{post.title}</h5>
-                              <p className="text-[11px] text-dim line-clamp-2 leading-relaxed">{post.excerpt}</p>
-                              <div className="flex justify-between text-[9px] text-dim font-mono pt-1">
-                                <span>Views: <strong>{post.views} matches</strong></span>
-                                <span>By {post.author}</span>
-                              </div>
                             </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Previews Modal representation popup */}
+                      {previewPost && (
+                        <div className="bg-white/5 border border-gold/20 rounded-2xl p-6 space-y-4">
+                          <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                            <span className="text-xs text-gold uppercase tracking-widest font-mono font-bold">🔍 Real-time Article Preview Screen</span>
+                            <button onClick={() => setPreviewPost(null)} className="text-[10px] text-dim hover:text-ivory">Hide Preview</button>
                           </div>
-                        ))}
+                          <div className="space-y-2">
+                            <div className="aspect-video w-full rounded-lg bg-cover bg-center border border-white/10" style={{ backgroundImage: `url(${previewPost.image})` }}></div>
+                            <h4 className="font-serif text-lg font-bold text-ivory">{previewPost.title}</h4>
+                            <p className="text-[10px] text-dim font-mono">PUBLISHED ON SERVER: {previewPost.dateCreated}</p>
+                            <p className="text-xs text-ivory/80 leading-relaxed max-h-32 overflow-y-auto">{previewPost.content}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-Tab 2: ADVERTISEMENT SERVER */}
+                {blogsSubTab === 'ads' && (
+                  <div className="grid md:grid-cols-2 gap-8">
+                    {/* LEFT Column: Create / Edit Ad Form */}
+                    <div className="bg-dark-card border border-white/5 rounded-2xl p-6 space-y-5 shadow-2xl">
+                      <div className="border-b border-white/5 pb-3 flex justify-between items-center">
+                        <div>
+                          <h4 className="font-serif text-base font-bold text-gold-pale">
+                            {editingAdId ? `Modify Advertisement: [${editingAdId}]` : 'Configure Ad Placement'}
+                          </h4>
+                          <p className="text-[11px] text-dim font-mono mb-1">Set banner variables, target slots, and dispatch campaigns instantaneously.</p>
+                        </div>
+                        {editingAdId && (
+                          <button 
+                            onClick={() => {
+                              setEditingAdId(null);
+                              setNewAdTitle('');
+                              setNewAdImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80');
+                              setNewAdPlacement('Homepage Hero');
+                            }}
+                            className="text-[10px] text-angola-red hover:underline font-mono"
+                          >
+                            Cancel Edit
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Ad / Brand Campaign Name</label>
+                          <input 
+                            id="ad-title-input"
+                            type="text" 
+                            placeholder="e.g., Standard Bank Corporate Trade Portal" 
+                            value={newAdTitle}
+                            onChange={(e) => setNewAdTitle(e.target.value)}
+                            className="w-full bg-dark border border-white/10 rounded-lg p-2.5 text-xs text-ivory outline-none focus:border-gold transition-all" 
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Placement Targeting Slot</label>
+                          <select 
+                            id="ad-placement-select"
+                            value={newAdPlacement}
+                            onChange={(e) => setNewAdPlacement(e.target.value)}
+                            className="w-full bg-dark border border-white/10 rounded-lg p-2.5 text-xs text-ivory outline-none focus:border-gold appearance-none"
+                          >
+                            <option value="Homepage Hero">Featured Brand Slot (Prestige)</option>
+                            <option value="Sidebar">Sidebar Sticky Tower (300x600)</option>
+                            <option value="In-Feed">In-Feed Responsive Banner (Magazine Strip)</option>
+                            <option value="Leaderboard">Leaderboard Banner (728x90 Header)</option>
+                            <option value="Footer">Footer Premium Sponsor Slot</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-widest text-dim mb-2 font-mono">Creative Asset Banner URL (Image)</label>
+                          <input 
+                            id="ad-image-input"
+                            type="text" 
+                            placeholder="https://images.unsplash.com/photo-..." 
+                            value={newAdImage}
+                            onChange={(e) => setNewAdImage(e.target.value)}
+                            className="w-full bg-dark border border-white/10 rounded-lg p-2.5 text-xs text-ivory outline-none focus:border-gold font-mono text-[11px] transition-all" 
+                          />
+                        </div>
+
+                        {/* Image Auto-Preview Helper */}
+                        <div className="bg-dark p-3 rounded-lg border border-white/5">
+                          <span className="block text-[9px] uppercase tracking-wider text-dim mb-2 font-mono">Asset Check:</span>
+                          <div className="w-full h-24 rounded bg-cover bg-center border border-white/10" style={{ backgroundImage: `url(${newAdImage || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'})` }}></div>
+                        </div>
+
+                        <div className="pt-4 border-t border-white/5 flex justify-end">
+                          <button 
+                            id="ad-save-button"
+                            onClick={handleSaveAd}
+                            className="px-6 py-2 bg-gold hover:bg-gold-light text-dark font-sans text-xs uppercase tracking-widest font-bold rounded-lg transition-all shadow-lg"
+                          >
+                            {editingAdId ? 'Apply Ad Changes Check ✓' : 'Deploy Live Placement 📢'}
+                          </button>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Previews Modal representation popup */}
-                    {previewPost && (
-                      <div className="bg-white/5 border border-gold/20 rounded-2xl p-6 space-y-4">
-                        <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                          <span className="text-xs text-gold uppercase tracking-widest font-mono font-bold">🔍 Real-time Article Preview Screen</span>
-                          <button onClick={() => setPreviewPost(null)} className="text-[10px] text-dim hover:text-ivory">Hide Preview</button>
+                    {/* RIGHT Column: Active Campaigns Ledger & Previews */}
+                    <div className="space-y-6">
+                      <div className="bg-dark-card border border-white/5 rounded-2xl p-6 shadow-2xl">
+                        <div className="border-b border-white/5 pb-3 mb-4 flex justify-between items-center">
+                          <h4 className="font-serif text-sm font-bold text-ivory uppercase tracking-wider">Active Ad rotation Server</h4>
+                          <span className="text-[9px] bg-sa-green/15 text-sa-green border border-sa-green/20 px-2 py-0.5 rounded font-mono font-bold">Online</span>
                         </div>
-                        <div className="space-y-2">
-                          <div className="aspect-video w-full rounded-lg bg-cover bg-center border border-white/10" style={{ backgroundImage: `url(${previewPost.image})` }}></div>
-                          <h4 className="font-serif text-lg font-bold text-ivory">{previewPost.title}</h4>
-                          <p className="text-[10px] text-dim font-mono">PUBLISHED ON SERVER: {previewPost.dateCreated}</p>
-                          <p className="text-xs text-ivory/80 leading-relaxed max-h-32 overflow-y-auto">{previewPost.content}</p>
+
+                        <div className="space-y-4 max-h-[580px] overflow-y-auto pr-2">
+                          {ads.map((ad) => (
+                            <div key={ad.id} className="p-4 bg-dark rounded-xl border border-white/5 hover:border-gold/20 transition-all flex flex-col sm:flex-row gap-4">
+                              <div className="w-full sm:w-28 h-16 rounded bg-cover bg-center shrink-0 border border-white/10" style={{ backgroundImage: `url(${ad.image})` }}></div>
+                              <div className="grow space-y-2">
+                                <div className="flex justify-between items-start">
+                                  <span className="text-[9px] font-mono text-gold font-bold px-1.5 py-0.5 bg-gold/5 rounded border border-gold/15 uppercase">
+                                    Placement: {ad.placement}
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <button 
+                                      onClick={() => handleEditAdSelect(ad)}
+                                      title="Edit Campaign"
+                                      className="p-1.5 text-dim hover:text-gold hover:bg-white/5 rounded transition-colors"
+                                    >
+                                      <Edit2 size={12} />
+                                    </button>
+                                    <button 
+                                      onClick={() => handleDeleteAd(ad.id)}
+                                      title="Suspend Campaign"
+                                      className="p-1.5 text-dim hover:text-angola-red hover:bg-white/5 rounded transition-colors"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                    <button 
+                                      onClick={() => {
+                                        setPreviewAd(ad);
+                                        triggerToast('Ad Banner Preview Configured', `Simulating '${ad.title}' placement.`);
+                                      }}
+                                      title="Live Preview Server"
+                                      className="p-1.5 text-sa-green hover:bg-white/5 rounded transition-colors"
+                                    >
+                                      <Eye size={12} />
+                                    </button>
+                                  </div>
+                                </div>
+                                <h5 className="font-serif text-sm font-bold text-ivory leading-snug">{ad.title}</h5>
+                                
+                                <div className="grid grid-cols-3 gap-2 text-center text-[9px] font-mono text-dim pt-1 border-t border-white/5">
+                                  <div>
+                                    <span className="block text-[8px] text-dim/60">IMPRESSIONS</span>
+                                    <strong className="text-ivory">{ad.impressions.toLocaleString()}</strong>
+                                  </div>
+                                  <div>
+                                    <span className="block text-[8px] text-dim/60">CLICKS</span>
+                                    <strong className="text-gold">{ad.clicks.toLocaleString()}</strong>
+                                  </div>
+                                  <div>
+                                    <span className="block text-[8px] text-dim/60">CTR RATIO</span>
+                                    <strong className="text-sa-green">{ad.impressions > 0 ? ((ad.clicks / ad.impressions) * 100).toFixed(2) : '0.00'}%</strong>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    )}
+
+                      {/* Dynamic Live Preview Box */}
+                      {previewAd && (
+                        <div className="bg-white/5 border border-gold/20 rounded-2xl p-6 space-y-4">
+                          <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                            <span className="text-xs text-gold uppercase tracking-widest font-mono font-bold">🔍 Live Placement Simulator Preview</span>
+                            <button onClick={() => setPreviewAd(null)} className="text-[10px] text-dim hover:text-ivory">Hide Simulator</button>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <span className="text-[10px] text-dim block font-mono">Current Simulator Slot Setup: <strong className="text-gold">{previewAd.placement}</strong></span>
+                            
+                            {/* Layout Simulation Sandbox based on placement */}
+                            {previewAd.placement === 'Homepage Hero' && (
+                              <div className="border border-white/10 rounded overflow-hidden">
+                                <div className="bg-dark p-2 text-center text-[8px] tracking-widest border-b border-white/5 uppercase text-dim font-mono">★ SPONSORED LEAD BANNER AD ★</div>
+                                <img src={previewAd.image} referrerPolicy="no-referrer" alt="ad" className="w-full h-36 object-cover" />
+                                <div className="bg-dark p-3 text-center">
+                                  <strong className="text-xs text-ivory font-serif">{previewAd.title}</strong>
+                                  <span className="block text-[9px] text-dim mt-1">Prime High Impact Exposure Banner on Main Stage Header.</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {previewAd.placement === 'Sidebar' && (
+                              <div className="grid grid-cols-3 gap-2">
+                                <div className="col-span-2 space-y-1">
+                                  <div className="h-2 bg-white/10 rounded w-full"></div>
+                                  <div className="h-2 bg-white/10 rounded w-4/5"></div>
+                                  <div className="h-12 bg-white/5 rounded-lg w-full flex items-center justify-center text-[9px] text-dim">Main Article Content Panel</div>
+                                </div>
+                                <div className="border border-white/10 rounded flex flex-col justify-between p-2 bg-dark">
+                                  <span className="text-[8px] text-gold font-mono uppercase block text-center border-b border-white/5 pb-1 mb-1">Promo tower</span>
+                                  <img src={previewAd.image} referrerPolicy="no-referrer" alt="ad" className="w-full h-20 object-cover rounded" />
+                                  <p className="text-[7px] text-dim mt-1 text-center truncate">{previewAd.title}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {previewAd.placement !== 'Homepage Hero' && previewAd.placement !== 'Sidebar' && (
+                              <div className="border border-white/10 rounded bg-dark p-3 flex items-center justify-between gap-4">
+                                <div className="grow space-y-1">
+                                  <span className="text-[8px] text-gold font-mono uppercase">Sponsored Banner</span>
+                                  <h6 className="text-xs font-bold text-ivory">{previewAd.title}</h6>
+                                  <p className="text-[9px] text-dim">Positioned smoothly in stream placements.</p>
+                                </div>
+                                <img src={previewAd.image} referrerPolicy="no-referrer" alt="ad" className="w-24 h-12 object-cover rounded border border-white/10" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </motion.div>
             )}
 

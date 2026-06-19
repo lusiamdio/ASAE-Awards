@@ -3,9 +3,9 @@ import { motion } from 'motion/react';
 import { MapPin, Hotel, Navigation2, Plane } from 'lucide-react';
 
 const accommodations = [
-  { name: 'The Michelangelo Hotel', dist: '0.2 km from venue', desc: '5-star Renaissance-style luxury.' },
-  { name: 'Sandton Sun', dist: '0.3 km from venue', desc: 'Direct access to Sandton City.' },
-  { name: 'DaVinci Hotel & Suites', dist: '0.5 km from venue', desc: 'Contemporary elegance on Nelson Mandela Square.' }
+  { name: 'The Table Bay Hotel', dist: '0.2 km from venue', desc: '5-star luxury maritime elegance right on the harbor.' },
+  { name: 'The Silo Hotel', dist: '0.5 km from venue', desc: 'Contemporary luxury in a historic grain silo complex.' },
+  { name: 'The Radisson Red Cape Town', dist: '0.4 km from venue', desc: 'Vibrant, art-infused modern rooms in the Silo District.' }
 ];
 
 export function MapVenue() {
@@ -37,12 +37,12 @@ export function MapVenue() {
                   <MapPin size={24} />
                 </div>
                 <div>
-                  <h3 className="font-serif text-2xl font-bold text-ivory">Sandton Convention Centre</h3>
-                  <p className="font-sans text-sm text-dim uppercase tracking-widest mt-1">Johannesburg, South Africa</p>
+                  <h3 className="font-serif text-2xl font-bold text-ivory">V&A Waterfront</h3>
+                  <p className="font-sans text-sm text-dim uppercase tracking-widest mt-1">V&A Waterfront, Cape Town, Western Cape</p>
                 </div>
               </div>
               <p className="font-sans text-dim leading-relaxed ml-16">
-                Situated in the heart of Johannesburg's business district, the Sandton Convention Centre offers world-class facilities fitting for the celebration of continuous Pan-African excellence.
+                Situated in the heart of Cape Town's iconic waterfront district, the V&A Waterfront offers world-class facilities and breathtaking harbor settings fitting for the celebration of continuous Pan-African excellence.
               </p>
             </div>
 
@@ -84,7 +84,7 @@ export function MapVenue() {
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-angola-red/5 to-sa-green/5 pointer-events-none z-10 rounded-2xl border border-white/5 mix-blend-overlay"></div>
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3583.4735232707255!2d28.05193!3d-26.1042595!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1e950c950ee0b66b%3A0xc3c5dc32832851ee!2sSandton%20Convention%20Centre!5e0!3m2!1sen!2sza!4v1690000000000!5m2!1sen!2sza" 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3311.236615024773!2d18.417387376673678!3d-33.90544157321245!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1dcc5d86280dd95d%3A0xe6bf448ec17812ec!2sV%26A%20Waterfront!5e0!3m2!1sen!2sza!4v1700000000000!5m2!1sen!2sza" 
               width="100%" 
               height="100%" 
               style={{ border: 0, filter: 'grayscale(80%) invert(90%) hue-rotate(180deg) contrast(1.1)' }} 

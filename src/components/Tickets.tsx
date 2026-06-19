@@ -36,9 +36,87 @@ Kind regards,`;
     setTimeout(() => setCopied(false), 3000);
   };
 
+  const ticketPackages = [
+    {
+      id: 'student',
+      name: 'Student Delegate',
+      price: 'R500',
+      description: 'Undergraduate/Postgraduate individuals',
+      benefits: [
+        'Access to Plenary Address',
+        'Academic Networking Hub',
+        'Digital Certificate of Attendance',
+        'Exhibition Area Pass'
+      ],
+      isPopular: false,
+      ctaLabel: 'BOOK STUDENT TICKET',
+      isEnquiry: false
+    },
+    {
+      id: 'professional',
+      name: 'Professional Delegate',
+      price: 'R2,500',
+      description: 'Individual professional practitioner',
+      benefits: [
+        'Full 3-Day Plenary & Workshops',
+        'Welcome Cocktails Invitation',
+        'Earn CPD Points Certificate',
+        'Sovereign Trade Materials Packet'
+      ],
+      isPopular: true,
+      ctaLabel: 'BOOK PROFESSIONAL TICKET',
+      isEnquiry: false
+    },
+    {
+      id: 'vip',
+      name: 'VIP Delegate',
+      price: 'R5,000',
+      description: 'Outside Africa / Executive access and lounge privileges',
+      benefits: [
+        'Bilateral Executive Lounge Pass',
+        'Fast-Track Registry Privileges',
+        'VIP Seating at General Sessions',
+        'Sponsorship Gala Networking Dinner'
+      ],
+      isPopular: false,
+      ctaLabel: 'BOOK VIP DELEGATE TICKET',
+      isEnquiry: false
+    },
+    {
+      id: 'virtual',
+      name: 'Virtual Delegate',
+      price: 'R1,500',
+      description: 'Online attendance with access to full live streams',
+      benefits: [
+        'Real-time Plenary Streams',
+        'Virtual Breakout Interactivity',
+        'PDF Package Presentation slides',
+        'Digital Delegate Entry Badge'
+      ],
+      isPopular: false,
+      ctaLabel: 'BOOK VIRTUAL TICKET',
+      isEnquiry: false
+    },
+    {
+      id: 'corporate',
+      name: 'Corporate Table',
+      price: 'R45,000',
+      description: 'Company Representative & delegation (Table of 10)',
+      benefits: [
+        '10 × All-Access VIP Passes',
+        'Corporate Profile Panel Banner',
+        'Guaranteed Premier Seating Table',
+        'Company Logo in Summit brochure'
+      ],
+      isPopular: false,
+      ctaLabel: 'ENQUIRE NOW',
+      isEnquiry: true
+    }
+  ];
+
   return (
     <section className="bg-dark py-24 px-6 md:px-12 border-t border-white/5" id="tickets">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
            <div className="font-sans text-[10px] tracking-[5px] uppercase text-gold flex items-center justify-center gap-4 mb-5">
             <span className="w-8 h-px bg-gold"></span>
@@ -48,90 +126,74 @@ Kind regards,`;
           <h2 className="font-serif text-4xl md:text-5xl font-bold leading-[1.15]">
             Ticket <span className="text-gold">Packages</span>
           </h2>
+          <p className="text-sm text-dim mt-4 max-w-xl mx-auto leading-relaxed">
+            Select the delegate seating tier tailored to your delegation's objectives for the ASAE Sustainability Summit 2026.
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 md:gap-2">
-          {/* General */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-dark border border-white/5 p-10 lg:p-12 text-center rounded-2xl shadow-xl"
-          >
-            <div className="font-sans text-[10px] font-bold tracking-[3px] text-dim mb-5">GENERAL</div>
-            <div className="font-serif text-4xl lg:text-5xl font-black text-ivory leading-none">R2,500</div>
-            <div className="text-sm text-dim mt-2 mb-10">per person</div>
-            
-            <div className="text-left space-y-4 mb-10">
-              <div className="pb-3 border-b border-ivory/5 text-sm text-ivory/60">✓ Awards Ceremony</div>
-              <div className="pb-3 border-b border-ivory/5 text-sm text-ivory/60">✓ Welcome Cocktails</div>
-              <div className="pb-3 border-b border-ivory/5 text-sm text-ivory/60">✓ Gala Dinner</div>
-              <div className="pb-3 text-sm text-ivory/25">✗ VIP Lounge Access</div>
-            </div>
-            
-            <button 
-              onClick={() => onBook('professional')}
-              className="w-full px-6 py-3 border border-white/10 rounded-lg text-gold font-sans text-xs font-bold tracking-[2px] transition-all hover:bg-gold/10 hover:border-gold cursor-pointer"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          {ticketPackages.map((pkg, index) => (
+            <motion.div 
+              key={pkg.id}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.08 }}
+              className={`flex flex-col justify-between h-full bg-dark-card border rounded-2xl p-6 lg:p-7 shadow-xl relative transition-all ${
+                pkg.isPopular ? 'border-gold ring-2 ring-gold/10 scale-[1.02]' : 'border-white/5 hover:border-white/10'
+              }`}
             >
-              BOOK TICKET
-            </button>
-          </motion.div>
+              {pkg.isPopular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-dark font-sans text-[8px] tracking-[2px] px-3 py-1 font-bold shadow-md rounded-full uppercase">
+                  Featured
+                </div>
+              )}
+              
+              <div>
+                <div className="font-sans text-[9px] font-bold tracking-[3px] text-gold-pale uppercase mb-3 text-center">
+                  {pkg.name}
+                </div>
+                <div className="text-center mb-5 border-b border-white/5 pb-5">
+                  <div className="font-serif text-3xl font-black text-ivory tracking-tight">{pkg.price}</div>
+                  <div className="text-[10px] text-dim mt-1 font-mono">{pkg.id === 'corporate' ? 'table of 10' : 'per delegate'}</div>
+                </div>
+                <p className="text-xs text-dim mb-6 text-center leading-relaxed h-10 line-clamp-2">
+                  {pkg.description}
+                </p>
+                
+                <div className="space-y-3.5 mb-8">
+                  {pkg.benefits.map((benefit, i) => (
+                    <div key={i} className="flex items-start gap-2.5 text-xs text-ivory/80">
+                      <span className="text-gold mt-0.5 shrink-0 font-bold">✓</span>
+                      <span className="leading-tight">{benefit}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {/* VIP */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="bg-dark-card border-2 border-gold p-10 lg:p-12 text-center relative z-10 md:scale-[1.05] shadow-2xl rounded-2xl"
-          >
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-dark font-sans text-[9px] tracking-[2px] px-4 py-1.5 font-bold shadow-lg rounded-full">MOST POPULAR</div>
-            <div className="font-sans text-[10px] font-bold tracking-[3px] text-gold mb-5">VIP</div>
-            <div className="font-serif text-4xl lg:text-5xl font-black text-gold leading-none">R6,500</div>
-            <div className="text-sm text-gold/60 mt-2 mb-10">per person</div>
-            
-            <div className="text-left space-y-4 mb-10">
-              <div className="pb-3 border-b border-gold/10 text-sm text-ivory/80">✓ All General Access</div>
-              <div className="pb-3 border-b border-gold/10 text-sm text-ivory/80">✓ VIP Lounge Access</div>
-              <div className="pb-3 border-b border-gold/10 text-sm text-ivory/80">✓ Premium Seating</div>
-              <div className="pb-3 text-sm text-ivory/80">✓ Networking Breakfast</div>
-            </div>
-            
-            <button 
-              onClick={() => onBook('vip')}
-              className="w-full px-6 py-3.5 bg-gold hover:bg-gold-light rounded-lg text-dark font-sans text-xs tracking-[2px] font-bold transition-all shadow-lg cursor-pointer"
-            >
-              BOOK VIP
-            </button>
-          </motion.div>
-
-           {/* Corporate */}
-           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="bg-dark border border-white/5 p-10 lg:p-12 text-center rounded-2xl shadow-xl"
-          >
-            <div className="font-sans text-[10px] tracking-[3px] font-bold text-dim mb-5">CORPORATE TABLE</div>
-            <div className="font-serif text-4xl lg:text-5xl font-black text-ivory leading-none">R45,000</div>
-            <div className="text-sm text-dim mt-2 mb-10">table of 10</div>
-            
-            <div className="text-left space-y-4 mb-10">
-              <div className="pb-3 border-b border-ivory/5 text-sm text-ivory/60">✓ 10 VIP Seats</div>
-              <div className="pb-3 border-b border-ivory/5 text-sm text-ivory/60">✓ Branded Table</div>
-              <div className="pb-3 border-b border-ivory/5 text-sm text-ivory/60">✓ Speaking Opportunity</div>
-              <div className="pb-3 text-sm text-ivory/60">✓ Media Coverage</div>
-            </div>
-            
-            <button 
-              onClick={() => setShowModal(true)}
-              className="block w-full text-center px-6 py-3 border border-white/10 rounded-lg text-gold font-sans text-xs tracking-[2px] font-bold transition-all hover:bg-gold/10 hover:border-gold cursor-pointer"
-            >
-              ENQUIRE NOW
-            </button>
-          </motion.div>
-
+              <div>
+                {pkg.isEnquiry ? (
+                  <button 
+                    onClick={() => setShowModal(true)}
+                    className="w-full py-2.5 bg-dark hover:bg-gold/10 border border-gold/30 hover:border-gold rounded-lg text-gold font-sans text-[10px] tracking-[1.5px] font-bold transition-all cursor-pointer"
+                  >
+                    {pkg.ctaLabel}
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => onBook(pkg.id)}
+                    className={`w-full py-2.5 rounded-lg font-sans text-[10px] tracking-[1.5px] font-bold transition-all cursor-pointer ${
+                      pkg.isPopular 
+                        ? 'bg-gold hover:bg-gold-light text-dark shadow-md shadow-gold/5' 
+                        : 'bg-white/5 hover:bg-white/10 text-ivory border border-white/10'
+                    }`}
+                  >
+                    {pkg.ctaLabel}
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
 

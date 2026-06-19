@@ -9,7 +9,7 @@ const faqs = [
   },
   { 
     q: "Where is the gala event taking place?", 
-    a: "The 2026 ASAE Gala will be held at the prestigious Sandton Convention Centre in Johannesburg, South Africa. Detailed access maps, VIP entry points, and logistical instructions are provided in the Delegate Portal upon ticket confirmation." 
+    a: "The 2026 ASAE Gala will be held at the prestigious V&A Waterfront in Cape Town, South Africa. Detailed access maps, VIP entry points, and logistical instructions are provided in the Delegate Portal upon ticket confirmation." 
   },
   { 
     q: "What is the dress code for the Gala Event?", 
@@ -17,7 +17,7 @@ const faqs = [
   },
   { 
     q: "Are there accommodation partnerships available for international attendees?", 
-    a: "Yes. We have secured exclusive rates and room blocks with premium partners including The Michelangelo, Sandton Sun, and DaVinci Hotel & Suites. Please use the exclusive booking code provided in your ticket confirmation email when reserving." 
+    a: "Yes. We have hospitality rates and room blocks with premium partners including The Table Bay Hotel, The Silo Hotel, and Radisson Red Cape Town. Please use the exclusive booking code provided in your ticket confirmation email when reserving." 
   },
   { 
     q: "How does the professional nomination process work?", 

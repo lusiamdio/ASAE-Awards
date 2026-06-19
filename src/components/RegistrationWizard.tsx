@@ -43,7 +43,7 @@ const CATEGORIES: Category[] = [
   { id: 'student', name: 'Student Delegate', description: 'Undergraduate/Postgraduate individuals', priceZar: 500, priceUsd: 30 },
   { id: 'professional', name: 'Professional Delegate', description: 'Individual professional practitioner', priceZar: 2500, priceUsd: 150 },
   { id: 'corporate', name: 'Corporate Table', description: 'Company Representative & delegation (Table of 10)', priceZar: 45000, priceUsd: 2600 },
-  { id: 'vip', name: 'VIP Delegate', description: 'Outside Africa / Executive access and lounge privileges', priceZar: 45000, priceUsd: 2600 },
+  { id: 'vip', name: 'VIP Delegate', description: 'Outside Africa / Executive access and lounge privileges', priceZar: 5000, priceUsd: 290 },
   { id: 'virtual', name: 'Virtual Delegate', description: 'Online attendance with access to full live streams', priceZar: 1500, priceUsd: 90 },
 ];
 
@@ -394,7 +394,7 @@ export function RegistrationWizard({ initialCategory, onClose }: RegistrationWiz
 
           <div className="mt-8 pt-6 border-t border-white/5 text-center">
             <span className="text-[9px] font-mono uppercase tracking-wider text-dim block mb-1">Summit Host Venue</span>
-            <p className="text-xs text-gold/80 font-serif font-bold">Johannesburg JICC 2026</p>
+            <p className="text-xs text-gold/80 font-serif font-bold">V&A Waterfront, Cape Town 2026</p>
           </div>
         </div>
 
@@ -1204,7 +1204,7 @@ export function RegistrationWizard({ initialCategory, onClose }: RegistrationWiz
 
                       {/* Footer banner */}
                       <div className="mt-4 text-[9px] font-mono text-dim">
-                        June 2026 · Johannesburg Summit Centre
+                        June 2026 · V&A Waterfront, Cape Town
                       </div>
                     </div>
                   </motion.div>

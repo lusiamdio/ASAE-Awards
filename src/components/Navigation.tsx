@@ -40,12 +40,12 @@ export default function Navigation() {
             </div>
           </div>
 
-          <ul className="hidden lg:flex items-center gap-6 xl:gap-8">
-            {['About', 'Live', 'Nominate', 'Vote', 'Venue', 'FAQ'].map((item) => (
+          <ul className="hidden lg:flex items-center gap-5 xl:gap-7">
+            {['About', 'Live', 'News & Blogs', 'Nominate', 'Vote', 'Venue', 'FAQ'].map((item) => (
               <li key={item}>
                 <a 
-                  href={`#${item.toLowerCase()}`}
-                  className="font-sans text-xs tracking-[2px] uppercase text-ivory/70 hover:text-gold transition-colors relative group"
+                  href={item === 'News & Blogs' ? '#news-portal' : `#${item.toLowerCase()}`}
+                  className="font-sans text-[11px] tracking-[1.5px] uppercase text-ivory/70 hover:text-gold transition-colors relative group"
                 >
                   {item}
                   <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-gold transition-all duration-300 group-hover:w-full"></span>
@@ -54,12 +54,15 @@ export default function Navigation() {
             ))}
           </ul>
 
-          <div className="hidden lg:flex items-center gap-3">
-            <a href="#vote" className="px-6 py-2.5 bg-gradient-to-br from-gold to-gold-light text-dark font-display text-xs tracking-[2px] font-bold transition-all hover:-translate-y-1 hover:shadow-[0_4px_20px_rgba(201,162,39,0.5)] [clip-path:polygon(8px_0%,100%_0%,calc(100%-8px)_100%,0%_100%)]">
+          <div className="hidden lg:flex items-center gap-2.5">
+            <a href="#vote" className="px-5 py-2 bg-gradient-to-br from-gold to-gold-light text-dark font-display text-[11px] tracking-[1.5px] font-bold transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(201,162,39,0.3)] [clip-path:polygon(6px_0%,100%_0%,calc(100%-6px)_100%,0%_100%)]">
               Vote Now
             </a>
-            <a href="#tickets" className="px-6 py-2.5 bg-transparent border border-gold/50 text-gold font-display text-xs tracking-[2px] transition-all hover:bg-gold/10 hover:border-gold">
+            <a href="#tickets" className="px-5 py-2 bg-transparent border border-gold/40 text-gold font-display text-[11px] tracking-[1.5px] transition-all hover:bg-gold/10 hover:border-gold">
               Buy Tickets
+            </a>
+            <a href="#advertise" className="px-5 py-2 bg-gradient-to-tr from-gold via-gold-pale to-gold-light text-dark font-display text-[11px] tracking-[1.5px] font-black transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(201,162,39,0.6)] border border-gold-light">
+              Advertise
             </a>
           </div>
 
@@ -82,10 +85,10 @@ export default function Navigation() {
             className="fixed inset-0 z-40 bg-dark/98 backdrop-blur-xl pt-24 pb-8 px-6 flex flex-col"
           >
             <ul className="flex flex-col gap-6 text-center mt-10">
-              {['About', 'Live', 'Nominate', 'Vote', 'Venue', 'FAQ'].map((item) => (
+              {['About', 'Live', 'News & Blogs', 'Nominate', 'Vote', 'Venue', 'FAQ'].map((item) => (
                 <li key={item}>
                   <a 
-                    href={`#${item.toLowerCase()}`}
+                    href={item === 'News & Blogs' ? '#news-portal' : `#${item.toLowerCase()}`}
                     onClick={() => setMobileMenuOpen(false)}
                     className="font-display text-xl tracking-[4px] uppercase text-ivory/80 hover:text-gold transition-colors"
                   >
@@ -94,12 +97,15 @@ export default function Navigation() {
                 </li>
               ))}
             </ul>
-            <div className="mt-auto flex flex-col gap-4">
-               <a href="#vote" onClick={() => setMobileMenuOpen(false)} className="w-full text-center px-6 py-4 bg-gradient-to-br from-gold to-gold-light text-dark font-display text-sm tracking-[2px] font-bold">
+            <div className="mt-auto flex flex-col gap-3">
+               <a href="#vote" onClick={() => setMobileMenuOpen(false)} className="w-full text-center px-6 py-3 bg-gradient-to-br from-gold to-gold-light text-dark font-display text-sm tracking-[2px] font-bold">
                 Vote Now
               </a>
-              <a href="#tickets" onClick={() => setMobileMenuOpen(false)} className="w-full text-center px-6 py-4 bg-transparent border border-gold/50 text-gold font-display text-sm tracking-[2px]">
+              <a href="#tickets" onClick={() => setMobileMenuOpen(false)} className="w-full text-center px-6 py-3 bg-transparent border border-gold/50 text-gold font-display text-sm tracking-[2px]">
                 Buy Tickets
+              </a>
+              <a href="#advertise" onClick={() => setMobileMenuOpen(false)} className="w-full text-center px-6 py-3 bg-gradient-to-tr from-gold to-gold-light text-dark font-display text-sm tracking-[2px] font-black">
+                Advertise
               </a>
             </div>
             <button 

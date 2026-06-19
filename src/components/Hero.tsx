@@ -36,7 +36,7 @@ export default function Hero() {
           className="font-sans text-[12px] font-bold tracking-[0.3em] uppercase text-gold flex items-center justify-center gap-4 mb-8 w-full"
         >
           <span className="flex-1 h-px bg-gradient-to-r from-transparent to-gold"></span>
-          Johannesburg · 2026
+          Cape Town · 2026
           <span className="flex-1 h-px bg-gradient-to-l from-transparent to-gold"></span>
         </motion.div>
 
@@ -71,7 +71,7 @@ export default function Hero() {
             VOTING PORTAL
           </a>
           <a href="#gallery" className="px-10 py-4 bg-transparent border border-ivory/30 text-ivory font-display text-xs tracking-[3px] transition-all hover:border-gold hover:text-gold">
-            VIEW PAST WINNERS
+            VIEW HALL OF FAME
           </a>
         </motion.div>
       </div>
