@@ -16,6 +16,7 @@ import { Tickets } from './components/Tickets';
 import { Footer } from './components/Footer';
 import { RegistrationWizard } from './components/RegistrationWizard';
 import { CompanyPage, PageTab } from './components/CompanyPage';
+import { ToastProvider } from './components/Toast';
 
 export default function App() {
   const [activeRegCategory, setActiveRegCategory] = useState<string | null>(null);
@@ -43,43 +44,47 @@ export default function App() {
 
   if (isDocPage) {
     return (
-      <CompanyPage 
-        initialTab={matchedTab} 
-        onNavigateHome={() => {
-          window.location.hash = '';
-          setCurrentHash('');
-        }} 
-      />
+      <ToastProvider>
+        <CompanyPage 
+          initialTab={matchedTab} 
+          onNavigateHome={() => {
+            window.location.hash = '';
+            setCurrentHash('');
+          }} 
+        />
+      </ToastProvider>
     );
   }
 
   return (
-    <div className="bg-dark text-ivory">
-      <Navigation />
-      <main>
-        <Hero />
-        <Stats />
-        <About />
-        <AboutDetails />
-        <LiveStream />
-        <NewsPortal />
-        <ConferenceAndAwards />
-        <Speakers />
-        <NominationForm />
-        <VotingPortal />
-        <MapVenue />
-        <FAQ />
-        <Gallery />
-        <Tickets onBook={(category) => setActiveRegCategory(category)} />
-      </main>
-      <Footer />
+    <ToastProvider>
+      <div className="bg-dark text-ivory">
+        <Navigation />
+        <main>
+          <Hero />
+          <Stats />
+          <About />
+          <AboutDetails />
+          <LiveStream />
+          <NewsPortal />
+          <ConferenceAndAwards />
+          <Speakers />
+          <NominationForm />
+          <VotingPortal />
+          <MapVenue />
+          <FAQ />
+          <Gallery />
+          <Tickets onBook={(category) => setActiveRegCategory(category)} />
+        </main>
+        <Footer />
 
-      {activeRegCategory !== null && (
-        <RegistrationWizard 
-          initialCategory={activeRegCategory} 
-          onClose={() => setActiveRegCategory(null)} 
-        />
-      )}
-    </div>
+        {activeRegCategory !== null && (
+          <RegistrationWizard 
+            initialCategory={activeRegCategory} 
+            onClose={() => setActiveRegCategory(null)} 
+          />
+        )}
+      </div>
+    </ToastProvider>
   );
 }

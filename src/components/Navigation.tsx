@@ -1,10 +1,16 @@
 import { motion, AnimatePresence } from 'motion/react';
 import React, { useState, useEffect } from 'react';
+import { Sun, Moon } from 'lucide-react';
 import asaeLogo from '../assets/images/asae_logo_1781797572399.jpg';
 
 export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') return 'light';
+    return 'dark';
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,6 +20,16 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
   return (
     <>
       <motion.nav
@@ -22,7 +38,7 @@ export default function Navigation() {
         transition={{ duration: 0.8, ease: 'easeOut' }}
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-400 border-b ${
           scrolled 
-            ? 'bg-dark/95 backdrop-blur-md py-3 px-6 md:px-12 border-gold/25' 
+            ? 'bg-dark/95 backdrop-blur-md py-3 px-6 md:px-12 border-gold/25 shadow-lg shadow-black/5' 
             : 'bg-gradient-to-b from-dark/95 to-transparent backdrop-blur-[8px] py-5 px-6 md:px-12 border-gold/10'
         }`}
       >
@@ -55,6 +71,14 @@ export default function Navigation() {
           </ul>
 
           <div className="hidden lg:flex items-center gap-2.5">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 mr-1 rounded-full text-gold hover:text-gold-light hover:bg-white/10 transition-all focus:outline-none"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+            </button>
             <a href="#vote" className="px-5 py-2 bg-gradient-to-br from-gold to-gold-light text-dark font-display text-[11px] tracking-[1.5px] font-bold transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(201,162,39,0.3)] [clip-path:polygon(6px_0%,100%_0%,calc(100%-6px)_100%,0%_100%)]">
               Vote Now
             </a>
@@ -66,12 +90,22 @@ export default function Navigation() {
             </a>
           </div>
 
-          <button 
-            className="lg:hidden text-gold focus:outline-none"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-          </button>
+          <div className="flex lg:hidden items-center gap-2">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 rounded-full text-gold hover:text-gold-light hover:bg-white/10 transition-all focus:outline-none"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+              aria-label="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+            </button>
+            <button 
+              className="text-gold focus:outline-none p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+          </div>
         </div>
       </motion.nav>
 

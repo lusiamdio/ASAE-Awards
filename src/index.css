@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+:root {
+  --bg-dark: #050505;
+  --bg-soft: #080808;
+  --bg-card: #171717;
+  --text-main: #ffffff;
+  --text-dim: #9ca3af;
+}
+
+:root.light {
+  --bg-dark: #ffffff;
+  --bg-soft: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0c0c0d;
+  --text-dim: #374151;
+}
+
 @theme {
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Cinzel", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
@@ -8,14 +24,14 @@
   --color-gold: #f59e0b;
   --color-gold-light: #fbbf24;
   --color-gold-pale: #fde68a;
-  --color-dark: #050505;
-  --color-dark-soft: #080808;
-  --color-dark-card: #171717;
-  --color-ivory: #ffffff;
+  --color-dark: var(--bg-dark);
+  --color-dark-soft: var(--bg-soft);
+  --color-dark-card: var(--bg-card);
+  --color-ivory: var(--text-main);
   --color-angola-red: #BC002D;
   --color-sa-green: #007A33;
   --color-sa-blue: #002395;
-  --color-dim: #9ca3af;
+  --color-dim: var(--text-dim);
 
   --animate-marquee: marquee 45s linear infinite;
 
@@ -75,5 +91,119 @@
   .doc-centre-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(245, 158, 11, 0.3) !important;
   }
+}
+
+/* High-Contrast Light Mode Utilities & Overrides */
+:root.light {
+  color-scheme: light;
+}
+
+:root.light body {
+  background-color: #ffffff;
+  color: #0c0c0d;
+}
+
+/* Force dark text for readability on neutral elements */
+:root.light .text-ivory {
+  color: #0c0c0d !important;
+}
+
+:root.light .text-dim {
+  color: #374151 !important;
+}
+
+/* Retain dark text on elements that should always be dark (e.g., buttons, badges) */
+:root.light .text-dark,
+:root.light .text-dark-soft,
+:root.light .text-dark-card {
+  color: #050505 !important;
+}
+
+/* Style cards and soft backgrounds in light mode */
+:root.light .bg-dark-card {
+  background-color: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 2px 8px -1px rgba(15, 23, 42, 0.04) !important;
+}
+
+:root.light .bg-dark-soft {
+  background-color: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+/* Handle opaque backgrounds (transparent backdrops) */
+:root.light .bg-dark\/95,
+:root.light .bg-dark\/90,
+:root.light .bg-dark\/85,
+:root.light .bg-dark\/80,
+:root.light .bg-dark\/50,
+:root.light .bg-dark\/40 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* Buttons and inline boxes in light mode */
+:root.light .bg-white\/5,
+:root.light .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+  color: #0c0c0d !important;
+}
+
+:root.light .bg-white\/5:hover,
+:root.light .bg-white\/10:hover {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+:root.light .border-white\/5,
+:root.light .border-white\/10,
+:root.light .border-white\/15,
+:root.light .border-white\/20,
+:root.light .border-white\/30 {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+/* Adjust gold border contrast in light mode */
+:root.light .border-gold\/10,
+:root.light .border-gold\/15,
+:root.light .border-gold\/20,
+:root.light .border-gold\/25,
+:root.light .border-gold\/30,
+:root.light .border-gold\/40,
+:root.light .border-gold\/50 {
+  border-color: rgba(180, 83, 9, 0.25) !important;
+}
+
+/* Recharts grid lines and ticks in light mode */
+:root.light .recharts-cartesian-grid line {
+  stroke: rgba(15, 23, 42, 0.08) !important;
+}
+
+:root.light .recharts-text {
+  fill: #374151 !important;
+}
+
+/* Highlights and pale golds */
+:root.light .text-gold-pale {
+  color: #b45309 !important; /* Amber-700 for high-contrast accessibility */
+}
+
+/* Inputs and interactive elements in light mode */
+:root.light input,
+:root.light select,
+:root.light textarea {
+  background-color: #ffffff !important;
+  color: #0c0c0d !important;
+  border-color: rgba(15, 23, 42, 0.2) !important;
+}
+
+:root.light input:focus,
+:root.light select:focus,
+:root.light textarea:focus {
+  border-color: #f59e0b !important;
+}
+
+/* Scrollbars in light mode */
+:root.light * {
+  scrollbar-color: rgba(15, 23, 42, 0.2) transparent;
 }
 

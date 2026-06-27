@@ -24,7 +24,7 @@ const winners = [
     img: 'https://bordalo.observador.pt/v2/q:60/rs:fill:940/c:1844:2129:nowe:122:111/plain/https://s3.observador.pt/wp-content/uploads/2026/02/27145021/pauloflores-045.jpg'
   },
   {
-    year: '20265',
+    year: '2026',
     name: 'Ivanilson Machado',
     category: 'Media, Journalism & Broadcasting',
     description: 'Chief Executive Officer of Pumangol. Television, radio, journalism, media production, communications, and public engagement.',

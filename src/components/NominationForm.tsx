@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UploadCloud, CheckCircle2, UserCircle, Briefcase, FileText } from 'lucide-react';
 import { AdminDashboard } from './AdminDashboard';
+import { saveSupabaseNomination } from '../lib/supabase';
+import { useToast } from './Toast';
 
 export function NominationForm() {
+  const { success } = useToast();
   const [isInitializing, setIsInitializing] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
@@ -30,8 +33,42 @@ export function NominationForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const nomineeName = formData.get('nomineeName') as string || '';
+    const nomineeEmail = formData.get('nomineeEmail') as string || '';
+    const organization = formData.get('organization') as string || '';
+    const category = formData.get('category') as string || '';
+    const nomineeBio = formData.get('nomineeBio') as string || '';
+
+    const newNomination = {
+      id: `NOM-${Math.floor(105 + Math.random() * 900)}`,
+      nomineeName,
+      nomineeEmail,
+      nomineeBio,
+      organization,
+      category,
+      nominatorName: 'Registered Delegate',
+      nominatorEmail: email || 'delegate@asae-excellence.com',
+      submissionLetter: `Submission for ${nomineeName} under category ${category}.`,
+      date: new Date().toISOString().split('T')[0],
+      status: 'Pending' as const,
+      attachmentName: fileName || undefined
+    };
+
+    // Save nomination to Supabase if configured
+    saveSupabaseNomination(newNomination);
+
+    try {
+      const stored = localStorage.getItem('asae_nominations');
+      const existing = stored ? JSON.parse(stored) : [];
+      localStorage.setItem('asae_nominations', JSON.stringify([newNomination, ...existing]));
+    } catch (err) {
+      console.error('Failed to save nomination to localStorage:', err);
+    }
+
+    success('Nomination Submitted! 🏆', `Dossier for ${nomineeName} was successfully recorded under ${category}.`);
     setHasSubmitted(true);
   };
 
@@ -185,11 +222,11 @@ export function NominationForm() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block font-sans text-[10px] font-bold tracking-widest uppercase text-ivory/60 mb-2">Full Name *</label>
-                      <input required type="text" placeholder="Dr. Henrique dos Santos" className="w-full bg-dark/50 border border-white/10 rounded-lg text-ivory font-sans px-4 py-3 outline-none focus:border-gold/50 transition-all"/>
+                      <input required name="nomineeName" type="text" placeholder="Dr. Henrique dos Santos" className="w-full bg-dark/50 border border-white/10 rounded-lg text-ivory font-sans px-4 py-3 outline-none focus:border-gold/50 transition-all"/>
                     </div>
                     <div>
                       <label className="block font-sans text-[10px] font-bold tracking-widest uppercase text-ivory/60 mb-2">Email Address *</label>
-                      <input required type="email" placeholder="henrique@example.com" className="w-full bg-dark/50 border border-white/10 rounded-lg text-ivory font-sans px-4 py-3 outline-none focus:border-gold/50 transition-all"/>
+                      <input required name="nomineeEmail" type="email" placeholder="henrique@example.com" className="w-full bg-dark/50 border border-white/10 rounded-lg text-ivory font-sans px-4 py-3 outline-none focus:border-gold/50 transition-all"/>
                     </div>
                   </div>
                 </div>
@@ -202,12 +239,12 @@ export function NominationForm() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block font-sans text-[10px] font-bold tracking-widest uppercase text-ivory/60 mb-2">Organization / Company *</label>
-                      <input required type="text" placeholder="Angola Investment Corp" className="w-full bg-dark/50 border border-white/10 rounded-lg text-ivory font-sans px-4 py-3 outline-none focus:border-gold/50 transition-all"/>
+                      <input required name="organization" type="text" placeholder="Angola Investment Corp" className="w-full bg-dark/50 border border-white/10 rounded-lg text-ivory font-sans px-4 py-3 outline-none focus:border-gold/50 transition-all"/>
                     </div>
                     <div>
                       <label className="block font-sans text-[10px] font-bold tracking-widest uppercase text-ivory/60 mb-2">Award Category *</label>
                       <div className="relative">
-                        <select required defaultValue="" className="w-full bg-dark/50 border border-white/10 rounded-lg text-ivory font-sans px-4 py-3 outline-none focus:border-gold/50 transition-all appearance-none">
+                        <select required name="category" defaultValue="" className="w-full bg-dark/50 border border-white/10 rounded-lg text-ivory font-sans px-4 py-3 outline-none focus:border-gold/50 transition-all appearance-none">
                           <option value="" disabled>Select Category</option>
                           <option>Business Leader of the Year</option>
                           <option>Technology Innovator</option>
@@ -230,7 +267,7 @@ export function NominationForm() {
                   </h3>
                   <div>
                     <label className="block font-sans text-[10px] font-bold tracking-widest uppercase text-ivory/60 mb-2">Career Summary & Achievement Details *</label>
-                    <textarea required rows={5} placeholder="Provide a concise overview of the nominee's career, key milestones, and their profound impact on the Pan-African community..." className="w-full bg-dark/50 border border-white/10 rounded-lg text-ivory font-sans px-4 py-3 outline-none focus:border-gold/50 transition-all resize-none"></textarea>
+                    <textarea required name="nomineeBio" rows={5} placeholder="Provide a concise overview of the nominee's career, key milestones, and their profound impact on the Pan-African community..." className="w-full bg-dark/50 border border-white/10 rounded-lg text-ivory font-sans px-4 py-3 outline-none focus:border-gold/50 transition-all resize-none"></textarea>
                     <p className="text-right text-[10px] text-dim mt-2 font-sans tracking-wide">Max 500 words</p>
                   </div>
                 </div>

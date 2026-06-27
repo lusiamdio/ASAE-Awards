@@ -30,6 +30,8 @@ import {
   BookOpen
 } from 'lucide-react';
 import asaeLogo from '../assets/images/asae_logo_1781797572399.jpg';
+import { saveSupabaseTransaction } from '../lib/supabase';
+import { useToast } from './Toast';
 
 interface Category {
   id: string;
@@ -53,6 +55,7 @@ interface RegistrationWizardProps {
 }
 
 export function RegistrationWizard({ initialCategory, onClose }: RegistrationWizardProps) {
+  const { success } = useToast();
   // Wizard state: 1, 2, 3, 4, 5 (Dashboard)
   const [step, setStep] = useState<number>(1);
   const [selectedCatId, setSelectedCatId] = useState<string>('professional');
@@ -149,6 +152,9 @@ export function RegistrationWizard({ initialCategory, onClose }: RegistrationWiz
       email: email
     };
 
+    // Save transaction to Supabase if configured
+    saveSupabaseTransaction(newTransaction);
+
     try {
       const existingTxnsStr = localStorage.getItem('asae_transactions') || '[]';
       const existingTxns = JSON.parse(existingTxnsStr);
@@ -157,6 +163,7 @@ export function RegistrationWizard({ initialCategory, onClose }: RegistrationWiz
       console.error('Failed to persist transaction', err);
     }
 
+    success('Registration Completed! 🎉', `Successfully registered as a ${selectedCategory.name}. Delegate ID: ${del}`);
     setStep(5); // Success state page
   };
 

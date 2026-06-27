@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  TrendingUp, Calendar, Clock, ArrowRight, User, Eye, Target, Sparkles, 
+  TrendingUp, Calendar, Clock, ArrowRight, User, Eye, Target, Sparkles, Search,
   Building, ChevronRight, Check, Copy, Download, DollarSign, BarChart2, 
   Globe, Laptop, HelpCircle, AlertCircle, Share2, Award, Megaphone, 
   FileText, ExternalLink, RefreshCw, Send, CheckCircle2, TrendingDown,
   Lock, Landmark
 } from 'lucide-react';
 import asaeLogo from '../assets/images/asae_logo_1781797572399.jpg';
+import { 
+  isSupabaseConfigured,
+  getSupabaseBlogs,
+  getSupabaseAds
+} from '../lib/supabase';
 
 // Define Article interface
 interface Article {
@@ -29,7 +34,7 @@ interface Article {
 }
 
 // Simulated High-Quality Editorial Database
-const MOCK_ARTICLES: Article[] = [
+const ARTICLES: Article[] = [
   {
     id: 'art-1',
     category: 'Innovation',
@@ -220,20 +225,27 @@ const SPONSORED_ARTICLES: Object[] = [
   }
 ];
 
-// Combined grid containing articles and inserted sponsored cards
-const getCombinedArticles = () => {
-  const result: any[] = [];
-  let sponsoredCounter = 0;
-  
-  MOCK_ARTICLES.forEach((art, index) => {
-    result.push(art);
-    // Every 3 regular articles, insert 1 sponsored card if available to monetize the feed
-    if ((index + 1) % 3 === 0 && sponsoredCounter < SPONSORED_ARTICLES.length) {
-      result.push(SPONSORED_ARTICLES[sponsoredCounter]);
-      sponsoredCounter++;
-    }
-  });
-  return result;
+const mapBlogToArticle = (blog: any): Article => {
+  let paragraphs: string[] = [];
+  if (Array.isArray(blog.content)) {
+    paragraphs = blog.content;
+  } else if (typeof blog.content === 'string') {
+    paragraphs = blog.content.split('\n').filter((p: string) => p.trim().length > 0);
+  }
+  return {
+    id: blog.id || `blog-${Math.random()}`,
+    title: blog.title || '',
+    excerpt: blog.excerpt || '',
+    content: paragraphs,
+    category: blog.category || 'Business',
+    author: blog.author || 'ASAE Editorial',
+    role: blog.role || 'Contributor',
+    date: blog.date || new Date().toLocaleDateString(),
+    readTime: blog.readTime || '3 min read',
+    image: blog.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80',
+    views: blog.views || 0,
+    ctr: '2.5%'
+  };
 };
 
 export function NewsPortal() {
@@ -241,6 +253,228 @@ export function NewsPortal() {
   const [activeArticle, setActiveArticle] = useState<Article | null>(null);
   const [showAdvertisePortal, setShowAdvertisePortal] = useState<boolean>(false);
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Load articles state (combining localStorage 'blogs' with ARTICLES)
+  const [articles, setArticles] = useState<Article[]>(() => {
+    try {
+      const storedBlogs = localStorage.getItem('blogs');
+      if (storedBlogs) {
+        const blogsList = JSON.parse(storedBlogs);
+        const publishedArticles = blogsList
+          .filter((b: any) => b.status === 'Published')
+          .map(mapBlogToArticle);
+        return [...publishedArticles, ...ARTICLES];
+      }
+    } catch (e) {
+      console.error('Failed to load dynamic blogs:', e);
+    }
+    return ARTICLES;
+  });
+
+  // Load sponsored articles state (combining localStorage 'ads' with default)
+  const [sponsoredArticles, setSponsoredArticles] = useState<Article[]>(() => {
+    const defaultSponsored = [
+      {
+        id: 'spon-1',
+        category: 'Business' as const,
+        title: 'Connecting Diaspora Wealth: Standard Bank Sovereign Corridor Initiatives',
+        excerpt: 'Standard Bank unveils localized treasury solutions designed explicitly for high-net-worth Angolan operators expanding inside SADC industries.',
+        content: [
+          'High-net-worth Angolan investors looking south have historically navigated highly fragmented regional banking standards. Standard Bank\'s latest private wealth corridors eliminate these friction points by uniting SADC corporate accounts under a unified relationship desk.',
+          'With dedicated specialists residing in both Luanda and Johannesburg, clients receive real-time currency risk hedging and immediate offshore portfolio routing guidance. This structural transparency simplifies cross-border commercial acquisitions, allowing capital to flow efficiently to high-impact developments.'
+        ],
+        author: 'Standard Bank Group',
+        role: 'Exclusive Banking Sponsor',
+        date: 'Sponsored Feature',
+        readTime: '3 min read',
+        image: 'https://www.moneyweb.co.za/wp-content/uploads/2014/07/Standard-Bank-7-1024x683.jpg',
+        views: 19800,
+        ctr: '4.8%',
+        isSponsored: true,
+        sponsorName: 'Standard Bank'
+      }
+    ];
+
+    try {
+      const storedAds = localStorage.getItem('ads');
+      if (storedAds) {
+        const adsList = JSON.parse(storedAds);
+        const activeSponsorPosts = adsList
+          .filter((ad: any) => ad.category === 'sponsored-post' && ad.status === 'Active')
+          .map((ad: any, idx: number) => ({
+            id: ad.id || `spon-dyn-${idx}`,
+            category: 'Business' as const,
+            title: `Brought to you by ${ad.brand}: Premium Industry Partnerships`,
+            excerpt: `Exclusive business insights and services tailored for the SADC region in collaboration with ${ad.brand}.`,
+            content: [
+              `As part of ASAE's strategic alliance program, we are proud to highlight ${ad.brand}'s contributions to facilitating economic cooperation and development between South Africa and Angola.`,
+              `Stay tuned for localized support channels and enterprise incentives curated to optimize growth and connectivity.`
+            ],
+            author: ad.brand,
+            role: 'Enterprise Partner',
+            date: 'Sponsored Feature',
+            readTime: '2 min read',
+            image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80',
+            views: ad.impressions || 0,
+            ctr: ad.ctr || '2.0%',
+            isSponsored: true,
+            sponsorName: ad.brand
+          }));
+        return [...activeSponsorPosts, ...defaultSponsored];
+      }
+    } catch (e) {}
+    return defaultSponsored;
+  });
+
+  // Re-sync blogs/ads from localStorage whenever user focuses or returns
+  useEffect(() => {
+    const syncData = async () => {
+      if (isSupabaseConfigured) {
+        try {
+          const [supabaseBlogs, supabaseAds] = await Promise.all([
+            getSupabaseBlogs(),
+            getSupabaseAds()
+          ]);
+          if (supabaseBlogs && supabaseBlogs.length > 0) {
+            const publishedArticles = supabaseBlogs
+              .filter((b: any) => b.status === 'Published')
+              .map(mapBlogToArticle);
+            setArticles([...publishedArticles, ...ARTICLES]);
+            localStorage.setItem('blogs', JSON.stringify(supabaseBlogs));
+          }
+          if (supabaseAds && supabaseAds.length > 0) {
+            const activeSponsorPosts = supabaseAds
+              .filter((ad: any) => ad.category === 'sponsored-post' && ad.status === 'Active')
+              .map((ad: any, idx: number) => ({
+                id: ad.id || `spon-dyn-${idx}`,
+                category: 'Business' as const,
+                title: `Brought to you by ${ad.brand}: Premium Industry Partnerships`,
+                excerpt: `Exclusive business insights and services tailored for the SADC region in collaboration with ${ad.brand}.`,
+                content: [
+                  `As part of ASAE's strategic alliance program, we are proud to highlight ${ad.brand}'s contributions to facilitating economic cooperation and development between South Africa and Angola.`,
+                  `Stay tuned for localized support channels and enterprise incentives curated to optimize growth and connectivity.`
+                ],
+                author: ad.brand,
+                role: 'Enterprise Partner',
+                date: 'Sponsored Feature',
+                readTime: '2 min read',
+                image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80',
+                views: ad.impressions || 0,
+                ctr: ad.ctr || '2.0%',
+                isSponsored: true,
+                sponsorName: ad.brand
+              }));
+            const defaultSponsored = [
+              {
+                id: 'spon-1',
+                category: 'Business' as const,
+                title: 'Connecting Diaspora Wealth: Standard Bank Sovereign Corridor Initiatives',
+                excerpt: 'Standard Bank unveils localized treasury solutions designed explicitly for high-net-worth Angolan operators expanding inside SADC industries.',
+                content: [
+                  'High-net-worth Angolan investors looking south have historically navigated highly fragmented regional banking standards. Standard Bank\'s latest private wealth corridors eliminate these friction points by uniting SADC corporate accounts under a unified relationship desk.',
+                  'With dedicated specialists residing in both Luanda and Johannesburg, clients receive real-time currency risk hedging and immediate offshore portfolio routing guidance. This structural transparency simplifies cross-border commercial acquisitions, allowing capital to flow efficiently to high-impact developments.'
+                ],
+                author: 'Standard Bank Group',
+                role: 'Exclusive Banking Sponsor',
+                date: 'Sponsored Feature',
+                readTime: '3 min read',
+                image: 'https://www.moneyweb.co.za/wp-content/uploads/2014/07/Standard-Bank-7-1024x683.jpg',
+                views: 19800,
+                ctr: '4.8%',
+                isSponsored: true,
+                sponsorName: 'Standard Bank'
+              }
+            ];
+            setSponsoredArticles([...activeSponsorPosts, ...defaultSponsored]);
+            localStorage.setItem('ads', JSON.stringify(supabaseAds));
+          }
+          return; // Skip fallback
+        } catch (e) {
+          console.error('Failed to sync from Supabase in NewsPortal:', e);
+        }
+      }
+
+      try {
+        const storedBlogs = localStorage.getItem('blogs');
+        if (storedBlogs) {
+          const blogsList = JSON.parse(storedBlogs);
+          const publishedArticles = blogsList
+            .filter((b: any) => b.status === 'Published')
+            .map(mapBlogToArticle);
+          setArticles([...publishedArticles, ...ARTICLES]);
+        }
+      } catch (e) {}
+      try {
+        const storedAds = localStorage.getItem('ads');
+        if (storedAds) {
+          const adsList = JSON.parse(storedAds);
+          const activeSponsorPosts = adsList
+            .filter((ad: any) => ad.category === 'sponsored-post' && ad.status === 'Active')
+            .map((ad: any, idx: number) => ({
+              id: ad.id || `spon-dyn-${idx}`,
+              category: 'Business' as const,
+              title: `Brought to you by ${ad.brand}: Premium Industry Partnerships`,
+              excerpt: `Exclusive business insights and services tailored for the SADC region in collaboration with ${ad.brand}.`,
+              content: [
+                `As part of ASAE's strategic alliance program, we are proud to highlight ${ad.brand}'s contributions to facilitating economic cooperation and development between South Africa and Angola.`,
+                `Stay tuned for localized support channels and enterprise incentives curated to optimize growth and connectivity.`
+              ],
+              author: ad.brand,
+              role: 'Enterprise Partner',
+              date: 'Sponsored Feature',
+              readTime: '2 min read',
+              image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80',
+              views: ad.impressions || 0,
+              ctr: ad.ctr || '2.0%',
+              isSponsored: true,
+              sponsorName: ad.brand
+            }));
+          const defaultSponsored = [
+            {
+              id: 'spon-1',
+              category: 'Business' as const,
+              title: 'Connecting Diaspora Wealth: Standard Bank Sovereign Corridor Initiatives',
+              excerpt: 'Standard Bank unveils localized treasury solutions designed explicitly for high-net-worth Angolan operators expanding inside SADC industries.',
+              content: [
+                'High-net-worth Angolan investors looking south have historically navigated highly fragmented regional banking standards. Standard Bank\'s latest private wealth corridors eliminate these friction points by uniting SADC corporate accounts under a unified relationship desk.',
+                'With dedicated specialists residing in both Luanda and Johannesburg, clients receive real-time currency risk hedging and immediate offshore portfolio routing guidance. This structural transparency simplifies cross-border commercial acquisitions, allowing capital to flow efficiently to high-impact developments.'
+              ],
+              author: 'Standard Bank Group',
+              role: 'Exclusive Banking Sponsor',
+              date: 'Sponsored Feature',
+              readTime: '3 min read',
+              image: 'https://www.moneyweb.co.za/wp-content/uploads/2014/07/Standard-Bank-7-1024x683.jpg',
+              views: 19800,
+              ctr: '4.8%',
+              isSponsored: true,
+              sponsorName: 'Standard Bank'
+            }
+          ];
+          setSponsoredArticles([...activeSponsorPosts, ...defaultSponsored]);
+        }
+      } catch (e) {}
+    };
+
+    syncData();
+
+    window.addEventListener('focus', syncData);
+    return () => window.removeEventListener('focus', syncData);
+  }, []);
+
+  const getCombinedArticles = () => {
+    const result: any[] = [];
+    let sponsoredCounter = 0;
+    
+    articles.forEach((art, index) => {
+      result.push(art);
+      if ((index + 1) % 3 === 0 && sponsoredCounter < sponsoredArticles.length) {
+        result.push(sponsoredArticles[sponsoredCounter]);
+        sponsoredCounter++;
+      }
+    });
+    return result;
+  };
 
   // States for dynamic, AI Search-Grounded breaking news ticker
   const [breakingNews, setBreakingNews] = useState<string[]>([
@@ -257,6 +491,13 @@ export function NewsPortal() {
     setNewsLoading(true);
     try {
       const response = await fetch('/api/breaking-news');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new TypeError("Received non-JSON response from server");
+      }
       const data = await response.json();
       if (data && Array.isArray(data.items)) {
         const cleaned = data.items.map((item: string) => item.replace(/^\s*✦\s*/, ''));
@@ -264,7 +505,7 @@ export function NewsPortal() {
         setLastUpdatedTime(new Date());
       }
     } catch (err) {
-      console.error('Failed to load real-time breaking news from server:', err);
+      console.warn('Failed to load real-time breaking news from server, using local fallback:', err);
     } finally {
       setNewsLoading(false);
     }
@@ -311,13 +552,20 @@ export function NewsPortal() {
 
   const categories = ['All', 'Awards', 'Business', 'Innovation', 'Leadership', 'Africa', 'Interviews'];
 
-  const filteredArticles = selectedCategory === 'All' 
-    ? getCombinedArticles()
-    : getCombinedArticles().filter(art => art.category === selectedCategory);
+  const filteredArticles = getCombinedArticles().filter(art => {
+    const matchesCategory = selectedCategory === 'All' || art.category === selectedCategory;
+    const matchesQuery = searchQuery.trim() === '' || 
+      art.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      art.excerpt?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      art.sponsorName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (Array.isArray(art.content) && art.content.some((c: string) => c.toLowerCase().includes(searchQuery.toLowerCase()))) ||
+      art.author?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesQuery;
+  });
 
   // Grab the absolute featured article (usually the first regular article)
-  const mainFeaturedArticle = MOCK_ARTICLES[0];
-  const sideTrendingArticles = MOCK_ARTICLES.slice(1, 3);
+  const mainFeaturedArticle = ARTICLES[0];
+  const sideTrendingArticles = ARTICLES.slice(1, 3);
 
   // Pricing calculations
   const priceList = {
@@ -488,25 +736,49 @@ export function NewsPortal() {
           </div>
         </div>
 
-        {/* 🧭 NEWS CATEGORIES (Filter Tabs) */}
-        <div className="flex items-center overflow-x-auto gap-2 pb-4 mb-4 border-b border-white/5 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-5 py-2.5 rounded-full font-sans text-xs font-bold tracking-wider uppercase transition-all whitespace-nowrap cursor-pointer ${
-                selectedCategory === cat 
-                  ? 'bg-gold text-dark font-black' 
-                  : 'bg-dark-card hover:bg-white/5 text-dim hover:text-ivory border border-white/5'
-              }`}
-            >
-              {cat === 'All' ? '⚡ All Platform News' : cat}
-            </button>
-          ))}
+        {/* 🧭 NEWS CATEGORIES & SEARCH (Filter Tabs & Search Input) */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 mb-8 border-b border-white/5">
+          <div className="flex items-center overflow-x-auto gap-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent py-1">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-5 py-2.5 rounded-full font-sans text-xs font-bold tracking-wider uppercase transition-all whitespace-nowrap cursor-pointer ${
+                  selectedCategory === cat 
+                    ? 'bg-gold text-dark font-black' 
+                    : 'bg-dark-card hover:bg-white/5 text-dim hover:text-ivory border border-white/5'
+                }`}
+              >
+                {cat === 'All' ? '⚡ All Platform News' : cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Real-time Search Input */}
+          <div className="relative w-full lg:max-w-xs">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-dim">
+              <Search size={14} className="text-gold/70" />
+            </span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search news & sponsor features..."
+              className="w-full bg-dark-card border border-white/10 hover:border-gold/30 focus:border-gold rounded-full text-xs text-ivory font-sans pl-10 pr-10 py-2.5 outline-none transition-all placeholder-dim"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-dim hover:text-gold text-xs font-bold transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 📰 SECTION 2: FEATURED NEWS (HIGH VALUE - NO ADS HERE - CLEAN AND PRESTIGIOUS) */}
-        {selectedCategory === 'All' && (
+        {selectedCategory === 'All' && searchQuery.trim() === '' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
             
             {/* Featured Article (Large Left Card) */}
@@ -656,68 +928,83 @@ export function NewsPortal() {
               <span className="text-gold">✦</span> Latest SADC Insights & Editorials
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredArticles.map((art) => {
-                const isSpons = art.isSponsored;
+            {filteredArticles.length === 0 ? (
+              <div className="bg-dark-card border border-white/5 rounded-2xl p-12 text-center space-y-4">
+                <p className="text-gold font-serif text-lg font-bold">No SADC Insights Found</p>
+                <p className="text-dim text-xs max-w-md mx-auto">
+                  We couldn't find any articles or partner features matching your search query: <span className="text-ivory">"{searchQuery}"</span>. Try adjusting your keywords or category filters.
+                </p>
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="px-5 py-2.5 bg-white/5 hover:bg-gold/10 text-gold border border-gold/20 hover:border-gold rounded font-sans text-xs uppercase font-bold tracking-wider transition-all cursor-pointer"
+                >
+                  Clear Search Query
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredArticles.map((art) => {
+                  const isSpons = art.isSponsored;
 
-                return (
-                  <div 
-                    key={art.id}
-                    onClick={() => setActiveArticle(art)}
-                    className={`rounded-xl border flex flex-col justify-between h-full group overflow-hidden transition-all duration-300 cursor-pointer ${
-                      isSpons 
-                        ? 'bg-gradient-to-b from-gold/5 to-transparent border-gold/25 hover:border-gold/60 shadow-[0_4px_25px_rgba(201,162,39,0.06)]' 
-                        : 'bg-dark-card border-white/5 hover:border-gold/30'
-                    }`}
-                  >
-                    <div>
-                      {/* Card Cover */}
-                      <div className="h-44 overflow-hidden relative">
-                        <img 
-                          src={art.image} 
-                          alt={art.title} 
-                          className="w-full h-full object-cover group-hover:scale-105 duration-500 transition-transform"
-                          referrerPolicy="no-referrer"
-                        />
-                        {isSpons ? (
-                          <span className="absolute top-4 left-4 z-10 bg-gold text-dark text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow">
-                            ★ Sponsored Editorial By {art.sponsorName}
-                          </span>
-                        ) : (
-                          <span className="absolute top-4 left-4 z-10 bg-black/60 backdrop-blur text-gold text-[8px] font-mono uppercase tracking-wider px-2 py-0.5 rounded">
-                            {art.category}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="p-5 space-y-3">
-                        <div className="flex items-center justify-between text-[10px] font-mono text-dim">
-                          <span className="flex items-center gap-1"><User size={10} /> {art.author}</span>
-                          <span>{art.date}</span>
+                  return (
+                    <div 
+                      key={art.id}
+                      onClick={() => setActiveArticle(art)}
+                      className={`rounded-xl border flex flex-col justify-between h-full group overflow-hidden transition-all duration-300 cursor-pointer ${
+                        isSpons 
+                          ? 'bg-gradient-to-b from-gold/5 to-transparent border-gold/25 hover:border-gold/60 shadow-[0_4px_25px_rgba(201,162,39,0.06)]' 
+                          : 'bg-dark-card border-white/5 hover:border-gold/30'
+                      }`}
+                    >
+                      <div>
+                        {/* Card Cover */}
+                        <div className="h-44 overflow-hidden relative">
+                          <img 
+                            src={art.image} 
+                            alt={art.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 duration-500 transition-transform"
+                            referrerPolicy="no-referrer"
+                          />
+                          {isSpons ? (
+                            <span className="absolute top-4 left-4 z-10 bg-gold text-dark text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow">
+                              ★ Sponsored Editorial By {art.sponsorName}
+                            </span>
+                          ) : (
+                            <span className="absolute top-4 left-4 z-10 bg-black/60 backdrop-blur text-gold text-[8px] font-mono uppercase tracking-wider px-2 py-0.5 rounded">
+                              {art.category}
+                            </span>
+                          )}
                         </div>
-                        
-                        <h4 className={`font-serif text-base font-bold leading-snug group-hover:text-gold transition-colors ${
-                          isSpons ? 'text-gold-pale' : 'text-ivory'
-                        }`}>
-                          {art.title}
-                        </h4>
 
-                        <p className="text-xs text-dim line-clamp-3 leading-relaxed">
-                          {art.excerpt}
-                        </p>
+                        <div className="p-5 space-y-3">
+                          <div className="flex items-center justify-between text-[10px] font-mono text-dim">
+                            <span className="flex items-center gap-1"><User size={10} /> {art.author}</span>
+                            <span>{art.date}</span>
+                          </div>
+                          
+                          <h4 className={`font-serif text-base font-bold leading-snug group-hover:text-gold transition-colors ${
+                            isSpons ? 'text-gold-pale' : 'text-ivory'
+                          }`}>
+                            {art.title}
+                          </h4>
+
+                          <p className="text-xs text-dim line-clamp-3 leading-relaxed">
+                            {art.excerpt}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-5 pt-0 flex items-center justify-between">
+                        <span className="text-[10px] font-mono text-dim tracking-wider">{art.readTime}</span>
+                        <span className="flex items-center gap-1 font-sans text-xs font-black tracking-wider text-gold group-hover:translate-x-1.5 transition-transform uppercase">
+                          {isSpons ? 'View Offer' : 'Read Article'} <ChevronRight size={14} />
+                        </span>
                       </div>
                     </div>
-
-                    <div className="p-5 pt-0 flex items-center justify-between">
-                      <span className="text-[10px] font-mono text-dim tracking-wider">{art.readTime}</span>
-                      <span className="flex items-center gap-1 font-sans text-xs font-black tracking-wider text-gold group-hover:translate-x-1.5 transition-transform uppercase">
-                        {isSpons ? 'View Offer' : 'Read Article'} <ChevronRight size={14} />
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* 📊 SECTION 5: SIDEBAR (VERY IMPORTANT FOR AD REVENUE) (4 of 12) */}

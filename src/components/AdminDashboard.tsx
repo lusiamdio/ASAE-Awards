@@ -49,6 +49,26 @@ import {
   Server
 } from 'lucide-react';
 
+
+import { 
+  supabase,
+  isSupabaseConfigured,
+  getSupabaseBlogs,
+  saveSupabaseBlog,
+  getSupabaseAds,
+  saveSupabaseAd,
+  getSupabaseTransactions,
+  saveSupabaseTransaction,
+  getSupabaseNominations,
+  saveSupabaseNomination,
+  getSupabaseVotingNominees,
+  saveSupabaseVotingNominee,
+  getSupabaseFraudAlerts,
+  saveSupabaseFraudAlert,
+  getSupabaseVoteAudits,
+  saveSupabaseVoteAudit
+} from '../lib/supabase';
+
 interface Nomination {
   id: string;
   nomineeName: string;
@@ -240,65 +260,147 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [currency, setCurrency] = useState<'ZAR' | 'AOA'>('ZAR');
   const exchangeRate = 45.0; // 1 ZAR = 45.00 AOA
 
+  // --- SUPABASE SYNCHRONIZATION STATE & EFFECT ---
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  React.useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    const loadAllFromSupabase = async () => {
+      setIsSyncing(true);
+      try {
+        const [
+          supabaseNoms,
+          supabaseVotingNoms,
+          supabaseFraudAlerts,
+          supabaseVoteAudits,
+          supabaseBlogs,
+          supabaseAds,
+          supabaseTxns
+        ] = await Promise.all([
+          getSupabaseNominations(),
+          getSupabaseVotingNominees(),
+          getSupabaseFraudAlerts(),
+          getSupabaseVoteAudits(),
+          getSupabaseBlogs(),
+          getSupabaseAds(),
+          getSupabaseTransactions()
+        ]);
+
+        if (supabaseNoms && supabaseNoms.length > 0) {
+          setNominations(supabaseNoms);
+          localStorage.setItem('asae_nominations', JSON.stringify(supabaseNoms));
+        }
+        if (supabaseVotingNoms && supabaseVotingNoms.length > 0) {
+          setVotingNominees(supabaseVotingNoms);
+          localStorage.setItem('asae_voting_nominees', JSON.stringify(supabaseVotingNoms));
+        }
+        if (supabaseFraudAlerts && supabaseFraudAlerts.length > 0) {
+          setVotingFraudAlerts(supabaseFraudAlerts);
+          localStorage.setItem('asae_voting_fraud_alerts', JSON.stringify(supabaseFraudAlerts));
+        }
+        if (supabaseVoteAudits && supabaseVoteAudits.length > 0) {
+          setVoteAudits(supabaseVoteAudits);
+          localStorage.setItem('asae_vote_audits', JSON.stringify(supabaseVoteAudits));
+        }
+        if (supabaseBlogs && supabaseBlogs.length > 0) {
+          setPosts(supabaseBlogs);
+          localStorage.setItem('blogs', JSON.stringify(supabaseBlogs));
+        }
+        if (supabaseAds && supabaseAds.length > 0) {
+          setAds(supabaseAds);
+          localStorage.setItem('ads', JSON.stringify(supabaseAds));
+        }
+        if (supabaseTxns && supabaseTxns.length > 0) {
+          setTransactions(supabaseTxns);
+          localStorage.setItem('asae_transactions', JSON.stringify(supabaseTxns));
+        }
+        
+        triggerToast('Supabase Connected ⚡', 'All databases successfully synchronized from production cloud server.');
+      } catch (err) {
+        console.error('Failed to sync from Supabase:', err);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    loadAllFromSupabase();
+  }, []);
+
   // --- MOCK INITIAL STATE ---
-  const [nominations, setNominations] = useState<Nomination[]>([
-    {
-      id: 'NOM-101',
-      nomineeName: 'Dr. Henrique dos Santos',
-      nomineeEmail: 'henrique.santos@angolainvest.ao',
-      nomineeBio: 'Pioneered financial technology solutions across Southern/Central Africa, and structured private capital developments worth R2.4 Billion.',
-      organization: 'Angola Investment Corp',
-      category: 'Business Leader of the Year',
-      nominatorName: 'Jane Rose',
-      nominatorEmail: 'jane.rose@finadvisors.co.za',
-      submissionLetter: 'I would like to nominating Dr. Henrique for his unmatched contribution in structuring international investments inside Southern Africa. Under his guidance, local fintech has boomed.',
-      date: '2026-06-18',
-      status: 'Pending',
-      attachmentName: 'executive_credentials.pdf'
-    },
-    {
-      id: 'NOM-102',
-      nomineeName: 'Maria Oliveira',
-      nomineeEmail: 'maria.o@techforward.africa',
-      nomineeBio: 'Developed open-source water sanitation AI models used by 45,000 rural farmers across Sub-Saharan projects.',
-      organization: 'TechForward Africa',
-      category: 'Technology Innovator',
-      nominatorName: 'Maria Oliveira',
-      nominatorEmail: 'maria.o@techforward.africa',
-      submissionLetter: 'Nominating myself to showcase the scale-up model of the agro-tech system we deployed in five SADC nations.',
-      date: '2026-06-17',
-      status: 'Pending',
-      attachmentName: 'water_tech_stats.pdf'
-    },
-    {
-      id: 'NOM-103',
-      nomineeName: 'Nelson Mandela Foundation Team',
-      nomineeEmail: 'outreach@mandelafoundation.org',
-      nomineeBio: 'Continuous dedication to educational equity and feeding schemes supporting over 1.2M children annually.',
-      organization: 'Nelson Mandela Foundation',
-      category: 'Community Impact Award',
-      nominatorName: 'Carlos Santos',
-      nominatorEmail: 'carlos@santos-consulting.co.za',
-      submissionLetter: 'Truly a legendary impact program. Their commitment during tough seasons has rewritten thousands of community outcomes.',
-      date: '2026-06-15',
-      status: 'Approved',
-      attachmentName: 'yearly_impact_report_2025.pdf'
-    },
-    {
-      id: 'NOM-104',
-      nomineeName: 'Isabel dos Santos',
-      nomineeEmail: 'private.contact@unitel-group.net',
-      nomineeBio: 'Entrepreneur and legacy investor with multi-decade leadership roles across telecommunications pipelines.',
-      organization: 'Unitel Group',
-      category: 'Lifetime Achievement',
-      nominatorName: 'Anonymous Executive',
-      nominatorEmail: 'anon.delegate@lunda.ao',
-      submissionLetter: 'Submitting a lifelong dossier of technology deployments across three coastal sovereign telecom integrations.',
-      date: '2026-06-14',
-      status: 'Rejected',
-      attachmentName: 'dossier_brief.pdf'
+  const [nominations, setNominations] = useState<Nomination[]>(() => {
+    const defaultNominations: Nomination[] = [
+      {
+        id: 'NOM-101',
+        nomineeName: 'Dr. Henrique dos Santos',
+        nomineeEmail: 'henrique.santos@angolainvest.ao',
+        nomineeBio: 'Pioneered financial technology solutions across Southern/Central Africa, and structured private capital developments worth R2.4 Billion.',
+        organization: 'Angola Investment Corp',
+        category: 'Business Leader of the Year',
+        nominatorName: 'Jane Rose',
+        nominatorEmail: 'jane.rose@finadvisors.co.za',
+        submissionLetter: 'I would like to nominating Dr. Henrique for his unmatched contribution in structuring international investments inside Southern Africa. Under his guidance, local fintech has boomed.',
+        date: '2026-06-18',
+        status: 'Pending',
+        attachmentName: 'executive_credentials.pdf'
+      },
+      {
+        id: 'NOM-102',
+        nomineeName: 'Maria Oliveira',
+        nomineeEmail: 'maria.o@techforward.africa',
+        nomineeBio: 'Developed open-source water sanitation AI models used by 45,000 rural farmers across Sub-Saharan projects.',
+        organization: 'TechForward Africa',
+        category: 'Technology Innovator',
+        nominatorName: 'Maria Oliveira',
+        nominatorEmail: 'maria.o@techforward.africa',
+        submissionLetter: 'Nominating myself to showcase the scale-up model of the agro-tech system we deployed in five SADC nations.',
+        date: '2026-06-17',
+        status: 'Pending',
+        attachmentName: 'water_tech_stats.pdf'
+      },
+      {
+        id: 'NOM-103',
+        nomineeName: 'Nelson Mandela Foundation Team',
+        nomineeEmail: 'outreach@mandelafoundation.org',
+        nomineeBio: 'Continuous dedication to educational equity and feeding schemes supporting over 1.2M children annually.',
+        organization: 'Nelson Mandela Foundation',
+        category: 'Community Impact Award',
+        nominatorName: 'Carlos Santos',
+        nominatorEmail: 'carlos@santos-consulting.co.za',
+        submissionLetter: 'Truly a legendary impact program. Their commitment during tough seasons has rewritten thousands of community outcomes.',
+        date: '2026-06-15',
+        status: 'Approved',
+        attachmentName: 'yearly_impact_report_2025.pdf'
+      },
+      {
+        id: 'NOM-104',
+        nomineeName: 'Isabel dos Santos',
+        nomineeEmail: 'private.contact@unitel-group.net',
+        nomineeBio: 'Entrepreneur and legacy investor with multi-decade leadership roles across telecommunications pipelines.',
+        organization: 'Unitel Group',
+        category: 'Lifetime Achievement',
+        nominatorName: 'Anonymous Executive',
+        nominatorEmail: 'anon.delegate@lunda.ao',
+        submissionLetter: 'Submitting a lifelong dossier of technology deployments across three coastal sovereign telecom integrations.',
+        date: '2026-06-14',
+        status: 'Rejected',
+        attachmentName: 'dossier_brief.pdf'
+      }
+    ];
+
+    try {
+      const stored = localStorage.getItem('asae_nominations');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (err) {
+      console.error('Failed to parse asae_nominations:', err);
     }
-  ]);
+    try {
+      localStorage.setItem('asae_nominations', JSON.stringify(defaultNominations));
+    } catch (e) {}
+    return defaultNominations;
+  });
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([
     {
@@ -625,6 +727,10 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     if (selectedTransaction && selectedTransaction.id === id) {
       setSelectedTransaction(prev => prev ? { ...prev, status: 'Completed' } : null);
     }
+    const target = transactions.find(t => t.id === id);
+    if (target) {
+      saveSupabaseTransaction({ ...target, status: 'Completed' });
+    }
     try {
       const stored = localStorage.getItem('asae_transactions');
       if (stored) {
@@ -642,6 +748,10 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     setTransactions(prev => prev.map(t => t.id === id ? { ...t, status: 'Refunded' } : t));
     if (selectedTransaction && selectedTransaction.id === id) {
       setSelectedTransaction(prev => prev ? { ...prev, status: 'Refunded' } : null);
+    }
+    const target = transactions.find(t => t.id === id);
+    if (target) {
+      saveSupabaseTransaction({ ...target, status: 'Refunded' });
     }
     try {
       const stored = localStorage.getItem('asae_transactions');
@@ -757,111 +867,174 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   ]);
 
   // Nominees mock data
-  const [votingNominees, setVotingNominees] = useState<VotingNominee[]>([
-    {
-      id: 'V-NOM-01',
-      name: 'Dr. Antonio Domingos',
-      organization: 'Angola Investment Corp',
-      country: 'Angola',
-      bio: 'Leading economic reforms and cross-border digital financial protocols in Southern Africa.',
-      category: 'Business Leader of the Year',
-      status: 'Approved',
-      isFeatured: true,
-      photoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
-      galleryCount: 4,
-      videoUrl: 'https://youtube.com/watch?v=asae-domingos',
-      websiteUrl: 'https://angolainvestcorp.ao',
-      socialLinks: { twitter: '@domingos_aic', linkedin: 'linkedin.com/in/domingos' },
-      votesCount: 24150,
-      judgesScore: 92
-    },
-    {
-      id: 'V-NOM-02',
-      name: 'Sarah Mokoena',
-      organization: 'FinTech Solutions SA',
-      country: 'South Africa',
-      bio: 'Pioneered cellular integration systems bridging migrant remittances securely.',
-      category: 'Business Leader of the Year',
-      status: 'Approved',
-      isFeatured: false,
-      photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
-      galleryCount: 2,
-      videoUrl: 'https://youtube.com/watch?v=mokoena-fintech',
-      websiteUrl: 'https://fintechsolutions.co.za',
-      socialLinks: { twitter: '@sarah_m_fin', linkedin: 'linkedin.com/in/sarah-mokoena' },
-      votesCount: 22800,
-      judgesScore: 89
-    },
-    {
-      id: 'V-NOM-03',
-      name: 'James Valerio',
-      organization: 'TechForward Venture',
-      country: 'South Africa',
-      bio: 'Dedicated incubator scaling tech talent in Soweto and Luanda industrial parks.',
-      category: 'Business Leader of the Year',
-      status: 'Approved',
-      isFeatured: false,
-      photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-      galleryCount: 5,
-      videoUrl: 'https://youtube.com/watch?v=techforward-valerio',
-      websiteUrl: 'https://techforward.co.za',
-      socialLinks: { twitter: '@jvalerio_ventures', linkedin: 'linkedin.com/in/james-valerio' },
-      votesCount: 18500,
-      judgesScore: 81
-    },
-    {
-      id: 'V-NOM-04',
-      name: 'Dr. Lando António',
-      organization: 'Tech Africa Lab',
-      country: 'Angola',
-      bio: 'Innovating neural systems for localized agriculture optimization.',
-      category: 'Young Entrepreneur of the Year',
-      status: 'Approved',
-      isFeatured: true,
-      photoUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80',
-      galleryCount: 3,
-      videoUrl: 'https://youtube.com/watch?v=lando-neural',
-      websiteUrl: 'https://techafrica.ao',
-      socialLinks: { twitter: '@lando_antonio', linkedin: 'linkedin.com/in/lando-antonio' },
-      votesCount: 16200,
-      judgesScore: 94
-    },
-    {
-      id: 'V-NOM-05',
-      name: 'Fatima Gonga',
-      organization: 'Eco-Gonga Ltd',
-      country: 'Angola',
-      bio: 'Carbon capture strategies centered in coastal Lobito and Cabinda industrial regions.',
-      category: 'Sustainability Champion',
-      status: 'Pending',
-      isFeatured: false,
-      photoUrl: 'https://images.unsplash.com/photo-1531123897727-8f129e1bfcc4?auto=format&fit=crop&w=400&q=80',
-      galleryCount: 1,
-      videoUrl: 'https://youtube.com/watch?v=carbon-gonga',
-      websiteUrl: 'https://ecogonganet.ao',
-      socialLinks: { twitter: '@fatima_eco', linkedin: 'linkedin.com/in/fatima-gonga' },
-      votesCount: 12050,
-      judgesScore: 78
+  const [votingNominees, setVotingNominees] = useState<VotingNominee[]>(() => {
+    const defaultVotingNominees: VotingNominee[] = [
+      {
+        id: 'V-NOM-01',
+        name: 'Dr. Antonio Domingos',
+        organization: 'Angola Investment Corp',
+        country: 'Angola',
+        bio: 'Leading economic reforms and cross-border digital financial protocols in Southern Africa.',
+        category: 'Business Leader of the Year',
+        status: 'Approved',
+        isFeatured: true,
+        photoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
+        galleryCount: 4,
+        videoUrl: 'https://youtube.com/watch?v=asae-domingos',
+        websiteUrl: 'https://angolainvestcorp.ao',
+        socialLinks: { twitter: '@domingos_aic', linkedin: 'linkedin.com/in/domingos' },
+        votesCount: 24150,
+        judgesScore: 92
+      },
+      {
+        id: 'V-NOM-02',
+        name: 'Sarah Mokoena',
+        organization: 'FinTech Solutions SA',
+        country: 'South Africa',
+        bio: 'Pioneered cellular integration systems bridging migrant remittances securely.',
+        category: 'Business Leader of the Year',
+        status: 'Approved',
+        isFeatured: false,
+        photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
+        galleryCount: 2,
+        videoUrl: 'https://youtube.com/watch?v=mokoena-fintech',
+        websiteUrl: 'https://fintechsolutions.co.za',
+        socialLinks: { twitter: '@sarah_m_fin', linkedin: 'linkedin.com/in/sarah-mokoena' },
+        votesCount: 22800,
+        judgesScore: 89
+      },
+      {
+        id: 'V-NOM-03',
+        name: 'James Valerio',
+        organization: 'TechForward Venture',
+        country: 'South Africa',
+        bio: 'Dedicated incubator scaling tech talent in Soweto and Luanda industrial parks.',
+        category: 'Business Leader of the Year',
+        status: 'Approved',
+        isFeatured: false,
+        photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+        galleryCount: 5,
+        videoUrl: 'https://youtube.com/watch?v=techforward-valerio',
+        websiteUrl: 'https://techforward.co.za',
+        socialLinks: { twitter: '@jvalerio_ventures', linkedin: 'linkedin.com/in/james-valerio' },
+        votesCount: 18500,
+        judgesScore: 81
+      },
+      {
+        id: 'V-NOM-04',
+        name: 'Dr. Lando António',
+        organization: 'Tech Africa Lab',
+        country: 'Angola',
+        bio: 'Innovating neural systems for localized agriculture optimization.',
+        category: 'Young Entrepreneur of the Year',
+        status: 'Approved',
+        isFeatured: true,
+        photoUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80',
+        galleryCount: 3,
+        videoUrl: 'https://youtube.com/watch?v=lando-neural',
+        websiteUrl: 'https://techafrica.ao',
+        socialLinks: { twitter: '@lando_antonio', linkedin: 'linkedin.com/in/lando-antonio' },
+        votesCount: 16200,
+        judgesScore: 94
+      },
+      {
+        id: 'V-NOM-05',
+        name: 'Fatima Gonga',
+        organization: 'Eco-Gonga Ltd',
+        country: 'Angola',
+        bio: 'Carbon capture strategies centered in coastal Lobito and Cabinda industrial regions.',
+        category: 'Sustainability Champion',
+        status: 'Pending',
+        isFeatured: false,
+        photoUrl: 'https://images.unsplash.com/photo-1531123897727-8f129e1bfcc4?auto=format&fit=crop&w=400&q=80',
+        galleryCount: 1,
+        videoUrl: 'https://youtube.com/watch?v=carbon-gonga',
+        websiteUrl: 'https://ecogonganet.ao',
+        socialLinks: { twitter: '@fatima_eco', linkedin: 'linkedin.com/in/fatima-gonga' },
+        votesCount: 12050,
+        judgesScore: 78
+      }
+    ];
+
+    try {
+      const stored = localStorage.getItem('asae_voting_nominees');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error(e);
     }
-  ]);
+    try {
+      localStorage.setItem('asae_voting_nominees', JSON.stringify(defaultVotingNominees));
+    } catch (e) {}
+    return defaultVotingNominees;
+  });
 
   // Real-time AI Anomaly Monitoring
-  const [votingFraudAlerts, setVotingFraudAlerts] = useState<FraudAlert[]>([
-    { id: 'FRD-101', voterEmail: 'bot-voter99@spam.xyz', ipAddress: '185.220.101.44', deviceFingerprint: 'Chrome-Win11-Canvas3812', anomalyType: 'VPN & IP Velocity Overload', riskScore: 'High', timestamp: '2026-06-18 08:24:11', status: 'Blocked' },
-    { id: 'FRD-102', voterEmail: 'dr.smith@medcor.co.za', ipAddress: '165.2.144.18', deviceFingerprint: 'Safari-Mac-Canvas1254', anomalyType: 'N/A - Legitimate Session', riskScore: 'Low', timestamp: '2026-06-18 08:35:50', status: 'Whitelisted' },
-    { id: 'FRD-103', voterEmail: 'infiltrator@hailmail.net', ipAddress: '45.138.16.222', deviceFingerprint: 'Firefox-Linux-NullReferrer', anomalyType: 'Device Fingerprint Spoofing & VPN', riskScore: 'High', timestamp: '2026-06-18 08:37:01', status: 'Pending' },
-    { id: 'FRD-104', voterEmail: 'sipho@safricapital.co.za', ipAddress: '102.220.91.5', deviceFingerprint: 'Chrome-iOS-ApplePayActive', anomalyType: 'N/A - Premium Vote', riskScore: 'Low', timestamp: '2026-06-18 08:41:22', status: 'Whitelisted' },
-    { id: 'FRD-105', voterEmail: 'mulberry92@gmail.ao', ipAddress: '197.80.254.12', deviceFingerprint: 'Safari-iOS-DeviceMismatched', anomalyType: 'Duplicate Votes via Rapid Refresh', riskScore: 'Medium', timestamp: '2026-06-18 08:45:00', status: 'Pending' }
-  ]);
+  const [votingFraudAlerts, setVotingFraudAlerts] = useState<FraudAlert[]>(() => {
+    const defaultAlerts: FraudAlert[] = [
+      { id: 'FRD-101', voterEmail: 'bot-voter99@spam.xyz', ipAddress: '185.220.101.44', deviceFingerprint: 'Chrome-Win11-Canvas3812', anomalyType: 'VPN & IP Velocity Overload', riskScore: 'High', timestamp: '2026-06-18 08:24:11', status: 'Blocked' },
+      { id: 'FRD-102', voterEmail: 'dr.smith@medcor.co.za', ipAddress: '165.2.144.18', deviceFingerprint: 'Safari-Mac-Canvas1254', anomalyType: 'N/A - Legitimate Session', riskScore: 'Low', timestamp: '2026-06-18 08:35:50', status: 'Whitelisted' },
+      { id: 'FRD-103', voterEmail: 'infiltrator@hailmail.net', ipAddress: '45.138.16.222', deviceFingerprint: 'Firefox-Linux-NullReferrer', anomalyType: 'Device Fingerprint Spoofing & VPN', riskScore: 'High', timestamp: '2026-06-18 08:37:01', status: 'Pending' },
+      { id: 'FRD-104', voterEmail: 'sipho@safricapital.co.za', ipAddress: '102.220.91.5', deviceFingerprint: 'Chrome-iOS-ApplePayActive', anomalyType: 'N/A - Premium Vote', riskScore: 'Low', timestamp: '2026-06-18 08:41:22', status: 'Whitelisted' },
+      { id: 'FRD-105', voterEmail: 'mulberry92@gmail.ao', ipAddress: '197.80.254.12', deviceFingerprint: 'Safari-iOS-DeviceMismatched', anomalyType: 'Duplicate Votes via Rapid Refresh', riskScore: 'Medium', timestamp: '2026-06-18 08:45:00', status: 'Pending' }
+    ];
+
+    try {
+      const stored = localStorage.getItem('asae_voting_fraud_alerts');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    try {
+      localStorage.setItem('asae_voting_fraud_alerts', JSON.stringify(defaultAlerts));
+    } catch (e) {}
+    return defaultAlerts;
+  });
 
   // Vote immutable trail
-  const [voteAudits, setVoteAudits] = useState<VoteAudit[]>([
-    { voteId: 'VOT-202410', voterId: 'USR-89241', deviceId: 'DEV-F8214', timestamp: '2026-06-18 08:01:24', location: 'Luanda, AO', paymentRef: 'FREE-VOTE', nomineeName: 'Dr. Antonio Domingos', categoryName: 'Business Leader of the Year', riskScore: 4 },
-    { voteId: 'VOT-202411', voterId: 'USR-90124', deviceId: 'DEV-K9125', timestamp: '2026-06-18 08:02:11', location: 'Cape Town, ZA', paymentRef: 'PAY-OZ-9124', nomineeName: 'Sarah Mokoena', categoryName: 'Business Leader of the Year', riskScore: 2 },
-    { voteId: 'VOT-202412', voterId: 'USR-51290', deviceId: 'DEV-M3182', timestamp: '2026-06-18 08:02:59', location: 'Soweto, ZA', paymentRef: 'FREE-VOTE', nomineeName: 'James Valerio', categoryName: 'Business Leader of the Year', riskScore: 12 },
-    { voteId: 'VOT-202413', voterId: 'USR-84192', deviceId: 'DEV-Z8103', timestamp: '2026-06-18 08:05:33', location: 'Benguela, AO', paymentRef: 'PAY-MC-810', nomineeName: 'Dr. Lando António', categoryName: 'Young Entrepreneur of the Year', riskScore: 1 },
-    { voteId: 'VOT-202414', voterId: 'USR-29471', deviceId: 'DEV-U9914', timestamp: '2026-06-18 08:06:12', location: 'Cape Town, ZA', paymentRef: 'FREE-VOTE', nomineeName: 'Sarah Mokoena', categoryName: 'Business Leader of the Year', riskScore: 3 },
-  ]);
+  const [voteAudits, setVoteAudits] = useState<VoteAudit[]>(() => {
+    const defaultAudits: VoteAudit[] = [
+      { voteId: 'VOT-202410', voterId: 'USR-89241', deviceId: 'DEV-F8214', timestamp: '2026-06-18 08:01:24', location: 'Luanda, AO', paymentRef: 'FREE-VOTE', nomineeName: 'Dr. Antonio Domingos', categoryName: 'Business Leader of the Year', riskScore: 4 },
+      { voteId: 'VOT-202411', voterId: 'USR-90124', deviceId: 'DEV-K9125', timestamp: '2026-06-18 08:02:11', location: 'Cape Town, ZA', paymentRef: 'PAY-OZ-9124', nomineeName: 'Sarah Mokoena', categoryName: 'Business Leader of the Year', riskScore: 2 },
+      { voteId: 'VOT-202412', voterId: 'USR-51290', deviceId: 'DEV-M3182', timestamp: '2026-06-18 08:02:59', location: 'Soweto, ZA', paymentRef: 'FREE-VOTE', nomineeName: 'James Valerio', categoryName: 'Business Leader of the Year', riskScore: 12 },
+      { voteId: 'VOT-202413', voterId: 'USR-84192', deviceId: 'DEV-Z8103', timestamp: '2026-06-18 08:05:33', location: 'Benguela, AO', paymentRef: 'PAY-MC-810', nomineeName: 'Dr. Lando António', categoryName: 'Young Entrepreneur of the Year', riskScore: 1 },
+      { voteId: 'VOT-202414', voterId: 'USR-29471', deviceId: 'DEV-U9914', timestamp: '2026-06-18 08:06:12', location: 'Cape Town, ZA', paymentRef: 'FREE-VOTE', nomineeName: 'Sarah Mokoena', categoryName: 'Business Leader of the Year', riskScore: 3 },
+    ];
+
+    try {
+      const stored = localStorage.getItem('asae_vote_audits');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    try {
+      localStorage.setItem('asae_vote_audits', JSON.stringify(defaultAudits));
+    } catch (e) {}
+    return defaultAudits;
+  });
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('asae_voting_nominees', JSON.stringify(votingNominees));
+    } catch (e) {}
+  }, [votingNominees]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('asae_voting_fraud_alerts', JSON.stringify(votingFraudAlerts));
+    } catch (e) {}
+  }, [votingFraudAlerts]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('asae_vote_audits', JSON.stringify(voteAudits));
+    } catch (e) {}
+  }, [voteAudits]);
 
   // Evaluation Judges Panel
   const [votingJudges, setVotingJudges] = useState<VotingJudge[]>([
@@ -901,9 +1074,17 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       return nom;
     });
     setNominations(updated);
+    try {
+      localStorage.setItem('asae_nominations', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to write updated nominations:', e);
+    }
 
     const target = nominations.find(n => n.id === id);
     if (target) {
+      // Save updated nomination to Supabase if configured
+      saveSupabaseNomination({ ...target, status: action });
+
       // Generate email logs for nominee and nominator
       const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
       
@@ -1123,21 +1304,18 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
     if (editingPostId) {
       // Edit mode
-      setPosts(prev => prev.map(p => {
-        if (p.id === editingPostId) {
-          return {
-            ...p,
-            title: newPostTitle,
-            category: newPostCategory,
-            excerpt: newPostExcerpt,
-            content: newPostContent,
-            type: newPostType,
-            status: newPostStatus,
-            image: newPostImage
-          };
-        }
-        return p;
-      }));
+      const updatedPost = {
+        id: editingPostId,
+        title: newPostTitle,
+        category: newPostCategory,
+        excerpt: newPostExcerpt,
+        content: newPostContent,
+        type: newPostType,
+        status: newPostStatus,
+        image: newPostImage
+      };
+      setPosts(prev => prev.map(p => p.id === editingPostId ? { ...p, ...updatedPost } : p));
+      saveSupabaseBlog(updatedPost);
       setEditingPostId(null);
       triggerToast('Editorial Updated', 'Successfully modified published post details on real-time server mockup.');
     } else {
@@ -1156,6 +1334,7 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         views: 0
       };
       setPosts([newPost, ...posts]);
+      saveSupabaseBlog(newPost);
       triggerToast('Article Published! 📰', `Digital ${newPostType} issue added to corporate publishing index.`);
     }
 
@@ -1182,6 +1361,11 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   const handleDeletePost = (id: string) => {
     setPosts(prev => prev.filter(p => p.id !== id));
+    if (supabase) {
+      supabase.from('blogs').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Failed to delete blog from Supabase:', error);
+      });
+    }
     triggerToast('Post Destroyed', 'Permanently expunged the newsletter article file and public feed endpoints.');
   };
 
@@ -1193,17 +1377,14 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     }
 
     if (editingAdId) {
-      setAds(prev => prev.map(a => {
-        if (a.id === editingAdId) {
-          return {
-            ...a,
-            title: newAdTitle,
-            image: newAdImage,
-            placement: newAdPlacement
-          };
-        }
-        return a;
-      }));
+      const updatedAd = {
+        id: editingAdId,
+        title: newAdTitle,
+        image: newAdImage,
+        placement: newAdPlacement
+      };
+      setAds(prev => prev.map(a => a.id === editingAdId ? { ...a, ...updatedAd } : a));
+      saveSupabaseAd(updatedAd);
       setEditingAdId(null);
       triggerToast('Ad Updated', `Successfully updated advertisement: '${newAdTitle}'`);
     } else {
@@ -1217,6 +1398,7 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         impressions: 0
       };
       setAds([newAd, ...ads]);
+      saveSupabaseAd(newAd);
       triggerToast('Ad Created! 📢', `New ad banner '${newAdTitle}' is live in placement '${newAdPlacement}'.`);
     }
 
@@ -1236,6 +1418,11 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   const handleDeleteAd = (id: string) => {
     setAds(prev => prev.filter(a => a.id !== id));
+    if (supabase) {
+      supabase.from('ads').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Failed to delete ad from Supabase:', error);
+      });
+    }
     triggerToast('Ad Removed', 'Successfully removed advertisement from rotation campaigns.');
   };
 
@@ -3935,7 +4122,9 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                 <td className="p-4 text-center">
                                   <button 
                                     onClick={() => {
-                                      setVotingNominees(votingNominees.map(n => n.id === nom.id ? { ...n, isFeatured: !n.isFeatured } : n));
+                                      const updatedNom = { ...nom, isFeatured: !nom.isFeatured };
+                                      setVotingNominees(votingNominees.map(n => n.id === nom.id ? updatedNom : n));
+                                      saveSupabaseVotingNominee(updatedNom);
                                       triggerToast(nom.isFeatured ? 'Feature Off' : 'Featured On', `${nom.name} toggle featuring state updated for portal header.`, 'success');
                                     }}
                                     className={`px-2 py-0.5 rounded text-[8px] font-mono font-bold uppercase transition-colors ${
@@ -3960,7 +4149,9 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                   <div className="flex gap-1 justify-end">
                                     <button 
                                       onClick={() => {
-                                        setVotingNominees(votingNominees.map(n => n.id === nom.id ? { ...n, status: 'Approved' } : n));
+                                        const updatedNom = { ...nom, status: 'Approved' };
+                                        setVotingNominees(votingNominees.map(n => n.id === nom.id ? updatedNom : n));
+                                        saveSupabaseVotingNominee(updatedNom);
                                         triggerToast('Dossier Cleared', 'Approved for active public polling.', 'success');
                                       }}
                                       className="px-1.5 py-1 text-[8px] bg-sa-green/10 text-sa-green hover:bg-sa-green hover:text-dark rounded transition-colors uppercase font-mono font-bold"
@@ -3969,7 +4160,9 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                     </button>
                                     <button 
                                       onClick={() => {
-                                        setVotingNominees(votingNominees.map(n => n.id === nom.id ? { ...n, status: 'Suspended' } : n));
+                                        const updatedNom = { ...nom, status: 'Suspended' };
+                                        setVotingNominees(votingNominees.map(n => n.id === nom.id ? updatedNom : n));
+                                        saveSupabaseVotingNominee(updatedNom);
                                         triggerToast('Dossier Suspended', 'Voter session requests will yield lock alerts.', 'alert');
                                       }}
                                       className="px-1.5 py-1 text-[8px] bg-angola-red/10 text-angola-red hover:bg-angola-red hover:text-white rounded transition-colors uppercase font-mono font-bold"
@@ -3981,7 +4174,9 @@ export function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                         const catsOption = votingCategories.filter(c => c.title !== nom.category);
                                         const choice = prompt(`Transfer category for ${nom.name}. Available:\n${catsOption.map((c, i) => `${i + 1}. ${c.title}`).join('\n')}\nInput exact matching name:`);
                                         if (choice && votingCategories.some(c => c.title === choice)) {
-                                          setVotingNominees(votingNominees.map(n => n.id === nom.id ? { ...n, category: choice } : n));
+                                          const updatedNom = { ...nom, category: choice };
+                                          setVotingNominees(votingNominees.map(n => n.id === nom.id ? updatedNom : n));
+                                          saveSupabaseVotingNominee(updatedNom);
                                           triggerToast('Category Transferred', `Moved dossier safely to segment '${choice}'.`, 'success');
                                         } else if (choice) {
                                           triggerToast('Error Mapping', 'Invalid category target typed.', 'alert');
